@@ -1,0 +1,36 @@
+html {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+body {
+    height: 100%;
+    width: 100%;
+    /* experimental !! */
+    padding-bottom: 55px;
+}
+
+#cashMap {
+    width: 100%;
+    height: 100%;
+}
+
+.alert {
+    z-index: 3000;
+}
+
+.errorCode {
+    font-size: .8rem;
+}
+
+/* < 992 px: Schrift kleiner */
+@media (max-width: 992px) {
+    .navbar .navbar-brand {
+        font-size: 1.1rem;
+    }
+    #zoomAlert, #errorAlert {
+        font-size: 1.2rem;
+    }
+
+}

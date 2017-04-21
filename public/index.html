@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="suche.cash!">
+    <meta name="author" content="Nils Vierus">
+
+    <title>suche.cash! - Geldautomatensuche</title>
+
+    <!-- Bootstrap CSS alpha 4.0.0-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+          integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/leaflet.locatecontrol/0.60.0/L.Control.Locate.min.css">
+
+    <link rel="stylesheet" href="vendor/css/leaflet.awesome-markers.css">
+    <link rel="stylesheet" href="vendor/css/leaflet.contextmenu.min.css">
+    <link rel="stylesheet" href="vendor/css/Control.Geocoder.css" />
+
+    <link rel="stylesheet" href="css/cashmap.css">
+
+    <!--
+    <link rel="apple-touch-icon" sizes="76x76" href="assets/img/favicon-76.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="assets/img/favicon-120.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/img/favicon-152.png">
+    <link rel="icon" sizes="196x196" href="assets/img/favicon-196.png">
+    -->
+    <link rel="icon" type="image/x-icon" href="./img/favicon.ico">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top navbar-toggleable-sm bg-primary" role="navigation">
+
+            <div class="navbar-header">
+
+                <button class="navbar-toggler navbar-toggler-right mt-1" type="button"
+                        data-toggle="collapse" data-target="#cashNavbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">&#9776;
+                </button>
+
+                <a class="navbar-brand pull-left" href="#">suche.cash!</a>
+            </div>
+
+
+        <!-- collapsable navigation -->
+        <div class="navbar-collapse collapse justify-content-stretch" id="cashNavbarNav">
+
+            <!-- navigation menu -->
+            <ul class="nav navbar-nav ml-auto">
+
+                 <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdownSelNetwork" role="button" href="#"
+                       data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-filter"></i>&nbsp;Filtern</a>
+
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownSelNetwork">
+                        <a class="dropdown-item" href="#" id="sparkassen">
+                            <i class="fa fa-check"></i>&nbsp;&nbsp;Sparkassen</a>
+                        <a class="dropdown-item" href="#" id="vrbanken">
+                            <i class="fa fa-check"></i>&nbsp;&nbsp;VR-Banken</a>
+                        <a class="dropdown-item" href="#" id="cashgroup">
+                            <i class="fa fa-check"></i>&nbsp;&nbsp;CashGroup</a>
+                        <a class="dropdown-item" href="#" id="cashpool">
+                            <i class="fa fa-check"></i>&nbsp;&nbsp;Cashpool</a>
+                        <a class="dropdown-item" href="#" id="sonstige">
+                            <i class="fa fa-check"></i>&nbsp;&nbsp;Sonstige</a>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#newFeatureModal" data-toggle="modal" data-target="#newFeatureModal">
+                        <i class="fa fa-plus"></i>&nbsp;Erfassen</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#helpModal" data-toggle="modal" data-target="#helpModal">
+                        <i class="fa fa-question"></i>&nbsp;Hilfe</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#aboutModal" data-toggle="modal" data-target="#aboutModal">
+                        <i class="fa fa-info"></i>&nbsp;&Uuml;ber</a>
+                </li>
+            </ul>
+        </div> <!--.navbar-collapse -->
+    </nav>
+
+    <div id="cashMap"></div>
+
+    <!-- Zoom Alert -->
+    <div class="alert alert-warning fixed-bottom w-75 mx-auto text-center font-weight-bold invisible"
+         id="zoomAlert" role="alert">
+        Zoome weiter hinein für Anzeige!
+    </div>
+
+    <!--Fehler Alert -->
+    <div class="alert alert-danger fixed-bottom w-75 mx-auto text-center font-weight-bold invisible"
+         id="errorAlert" role="alert">
+    </div>
+
+    <!-- Neuanlage -->
+    <div class="modal fade" id="newFeatureModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <div class="modal-title text-primary">Geldautomaten eintragen</div>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+
+                <div class="modal-body">
+                    <p>Die Erfassung von Geldautomaten und Bankfilialen in OpenStreetMap ist derzeit noch nicht m&ouml;glich.</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Schlie&szlig;en</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Infodialog OSM Objekt -->
+    <div class="modal fade" id="featureModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title text-primary" id="feature-title"></h4>
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- Nav tabs -->
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="tab" href="#feature-info" role="tab">Allgemein</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link hidden-sm-down" data-toggle="tab" href="#opening" role="tab">
+                                &Ouml;ffnungszeiten</a>
+                            <a class="nav-link hidden-md-up" data-toggle="tab" href="#opening" role="tab">
+                                Ge&ouml;ffnet</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link hidden-sm-down" data-toggle="tab" href="#osm-tags" role="tab">
+                                OpenStreetMap</a>
+                            <a class="nav-link hidden-md-up" data-toggle="tab" href="#osm-tags" role="tab">
+                                OSM</a>
+                        </li>
+
+                    </ul>
+
+                    <!-- Tab panes -->
+                    <div class="tab-content">
+                        <div class="tab-pane active mt-3 ml-md-3" id="feature-info" role="tabpanel"></div>
+                        <div class="tab-pane mt-3 ml-md-3" id="osm-tags" role="tabpanel"></div>
+                        <div class="tab-pane mt-3 ml-md-3" id="opening" role="tabpanel">
+                            <button type="button" id="newOpeningHours" class="btn bt-sm btn-outline-primary pull-right invisible">
+                                Jetzt erfassen
+                            </button>
+                        </div>
+                     </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Schlie&szlig;en</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <!-- Hilfetext -->
+    <div class="modal fade" id="helpModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h4 class="modal-title text-primary">suche.cash!</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+
+                <div class="modal-body">
+                    <p>Diese App basiert auf Daten der freien Weltkarte <a href="http://www.openstreetmap.de" target="_blank">
+                        OpenStreetMap (OSM)</a> und zeigt Dir die dort erfassten Geldautomaten und Bankfilialen mit Geldautomaten
+                        in Deiner N&auml;he an.<br />
+                        Wenn in OSM auch die &Ouml;ffnungszeiten erfasst sind, werden sie ausgewertet und das Logo
+                        (<i class="fa fa-institution"></i> - Bank, <i class="fa fa-euro"></i> - Geldautomat)
+                        in gr&uuml;n (derzeit ge&ouml;ffnet) oder rot (derzeit geschlossen) dargestellt. Wenn in OSM keine
+                        &Ouml;ffnungszeiten erfasst wurden, ist das Logo schwarz.</p>
+                    <p>Der Bankenverbund des Automaten wird durch die Farbe des Markers gekennzeichnet. Die Anzeige l&auml;sst sich
+                        &uuml;ber das Men&uuml; <i class="fa fa-filter"></i>&nbsp;Filter</i> auf einzelne Verb&uuml;nde filtern
+                        und so gegebenfalls Abhebegeb&uuml;hren vermeiden.</p>
+                    <p>Demn&auml;chst kannst Du fehlende Geldautomaten auch direkt in dieser App erfassen.</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Schlie&szlig;en</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Über cashMap -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h4 class="modal-title text-primary">suche.cash!</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+
+                <div class="modal-body">
+                    <p>Impressum:</p>
+                    <p>www.osm-maps.eu</p>
+                    <div id="version"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Schlie&szlig;en</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery first, then Tether, then Bootstrap JS. -->
+    <script src="https://code.jquery.com/jquery-3.2.0.min.js"
+            integrity="sha256-JAW99MJVpJBGcbzEuXk4Az05s/XyDdBomFqNlM3ic+I="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
+            integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
+            integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+            crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/leaflet.locatecontrol/0.60.0/L.Control.Locate.min.js"></script>
+
+
+    <script src="vendor/js/osmtogeojson.min.js"></script>
+
+    <script src="vendor/js/simple-opening-hours.js"></script>
+    <script src="vendor/js/leaflet.awesome-markers.js"></script>
+    <script src="vendor/js/leaflet.contextmenu.min.js" charset="utf-8"></script>
+    <script src="vendor/js/Control.Geocoder.js"></script>
+    <script src="vendor/js/spin.min.js" charset="utf-8"></script>
+    <script src="vendor/js/leaflet.spin.min.js" charset="utf-8"></script>
+
+    <script src="js/cash_const.js"></script>
+    <script src="js/cash_utils.js"></script>
+    <script src="js/cashmap.js"></script>
+
+</body>
+</html>
