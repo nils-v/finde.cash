@@ -152,19 +152,21 @@ var cashmap_utils = cashmap_utils || {};
 
 						var openHours = new SimpleOpeningHours(feature.properties.tags.opening_hours);
 						var ohObj = openHours.getTable();
-
+/*
 						console.log('1. OSM:' + feature.properties.tags.opening_hours);
 						console.log('2. ohTable: ' + ohObj);
 						console.table(ohObj);
-
+*/
 						var validOh = false;
 						Object.keys(ohObj).forEach(function (dayOfWeek) {
 							if (ohObj[dayOfWeek].length !== 0) { validOh = true;}
 						});
 
 						if (validOh) {
+							/*
 							console.log('3. Datum: ' + new Date().toTimeString());
 							console.log('4. valid oh -' + (openHours.isOpenNow() ? 'offen' : 'zu'));
+							*/
 
 							featureInfo += (openHours.isOpenNow() ?
 								'<p class="text-success font-weight-bold">Jetzt ge&ouml;ffnet.</p>' :
@@ -310,17 +312,6 @@ var cashmap_utils = cashmap_utils || {};
 				}
 			}
 		}
-	};
-
-	// TODO context menu Neuanlage
-	utils.createFeature = function (map) {
-
-		alert('not yet implemented');
-	};
-
-	// TODO context menu Geocoding
-	utils.showCurrAddress = function (map) {
-		alert('not yet implemented');
 	};
 
 })(cashmap_utils, cashmap_const, window.L, window.jQuery);

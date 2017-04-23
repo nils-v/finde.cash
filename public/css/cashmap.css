@@ -17,11 +17,16 @@ body {
 }
 
 .alert {
-    z-index: 3000;
+    z-index: 1000;
 }
 
 .errorCode {
     font-size: .8rem;
+}
+
+/* hide select entry in network select */
+option[value=""][disabled] {
+    display: none;
 }
 
 /* < 992 px: Schrift kleiner */
@@ -33,4 +38,7 @@ body {
         font-size: 1.2rem;
     }
 
+    .hideAttr {
+        display: none;
+    }
 }
