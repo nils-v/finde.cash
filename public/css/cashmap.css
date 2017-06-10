@@ -2,13 +2,12 @@ html {
     height: 100%;
     width: 100%;
     overflow: hidden;
+    font-size: 14px;
 }
 
 body {
     height: 100%;
     width: 100%;
-    /* experimental !! */
-    padding-bottom: 55px;
 }
 
 #cashMap {
@@ -20,8 +19,8 @@ body {
     z-index: 1000;
 }
 
-.errorCode {
-    font-size: .8rem;
+.leaflet-contextmenu-item {
+    font-size: 1rem;
 }
 
 /* hide select entry in network select */
@@ -34,8 +33,8 @@ option[value=""][disabled] {
     .navbar .navbar-brand {
         font-size: 1.1rem;
     }
-    #zoomAlert, #errorAlert {
-        font-size: 1.2rem;
+    #warningAlert, #dangerAlert {
+        font-size: 1.1rem;
     }
 
     .hideAttr {

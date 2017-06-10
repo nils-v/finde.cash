@@ -10,24 +10,26 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#000000">
     <meta name="description" content="Geldautomaten finden mit OpenStreetMap">
-    <meta name="author" content="Nils Vierus">
+    <meta name="keywords" content="ATM,cash machine,Geldautomat,Bankenverbund,Nähe,Automatenverbund,OSM,OpenStreetMap">
+    <meta name="author" content="Nils Vierus, osm-maps.eu">
 
-    <title>suche.cash! - Geldautomaten finden</title>
+    <title>finde.cash! - Geldautomaten finden</title>
 
     <!-- Bootstrap CSS alpha 4.0.0-->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
           integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/leaflet.locatecontrol/0.60.0/L.Control.Locate.min.css">
 
     <link rel="stylesheet" href="vendor/css/leaflet.awesome-markers.css">
+    <link rel="stylesheet" href="vendor/css/leaflet.contextmenu.css">
     <link rel="stylesheet" href="vendor/css/Control.Geocoder.css" />
 
     <link rel="stylesheet" href="css/cashmap.css">
 
-    <!--
+    <!-- TODO activate other formats
     <link rel="apple-touch-icon" sizes="76x76" href="assets/img/favicon-76.png">
     <link rel="apple-touch-icon" sizes="120x120" href="assets/img/favicon-120.png">
     <link rel="apple-touch-icon" sizes="152x152" href="assets/img/favicon-152.png">
@@ -47,7 +49,7 @@
                         aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">&#9776;
                 </button>
 
-                <a class="navbar-brand pull-left" href="#">suche.cash!</a>
+                <a class="navbar-brand pull-left" href="#">finde.cash!</a>
             </div>
 
 
@@ -65,35 +67,47 @@
 
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownSelNetwork">
                         <a class="dropdown-item" href="#" id="sparkassen">
-                            <i class="fa fa-check"></i>&nbsp;&nbsp;Sparkassen</a>
+                            <i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Sparkassen</a>
                         <a class="dropdown-item" href="#" id="vrbanken">
-                            <i class="fa fa-check"></i>&nbsp;&nbsp;VR-Banken</a>
+                            <i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;VR-Banken</a>
                         <a class="dropdown-item" href="#" id="cashgroup">
-                            <i class="fa fa-check"></i>&nbsp;&nbsp;CashGroup</a>
+                            <i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;CashGroup</a>
                         <a class="dropdown-item" href="#" id="cashpool">
-                            <i class="fa fa-check"></i>&nbsp;&nbsp;Cashpool</a>
+                            <i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Cashpool</a>
                         <a class="dropdown-item" href="#" id="sonstige">
                             <i class="fa fa-check"></i>&nbsp;&nbsp;Sonstige</a>
                     </div>
                 </li>
 
-                <li class="nav-item">
-                    <!--
-                    <a class="nav-link disabled" href="#" data-toggle="modal" data-target="#newFeatureModal">
-                        <i class="fa fa-plus"></i>&nbsp;Erfassen</a>
-                    -->
-                    <a class="nav-link disabled" href="#">
-                        <i class="fa fa-plus"></i>&nbsp;Erfassen</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdownOsm" role="button" href="#"
+                       data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-user" aria-hidden="true"></i>&nbsp;OSM [&nbsp;<span id="osmUser">nicht&nbsp;angemeldet</span>&nbsp;]</a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownOsm">
+                        <a class="dropdown-item" href="#" id="osmLoginToggle"><i class="fa fa-sign-in" aria-hidden="true"></i>"></i>&nbsp;&nbsp;Anmelden</a>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdownNew" role="button" href="#"
+                       data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-plus" aria-hidden="true"></i>&nbsp;Erfassen</a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownNew">
+                        <a class="dropdown-item" href="#" id="menuNewOnMap">
+                            <i class="fa fa-fw fa-map-pin" aria-hidden="true"></i>&nbsp;&nbsp;Auf der Karte</a>
+                    </div>
                 </li>
 
                 <li class="nav-item">
                     <a class="nav-link" href="#helpModal" data-toggle="modal" data-target="#helpModal">
-                        <i class="fa fa-question"></i>&nbsp;Hilfe</a>
+                        <i class="fa fa-question" aria-hidden="true"></i>&nbsp;Hilfe</a>
                 </li>
 
                 <li class="nav-item">
                     <a class="nav-link" href="#aboutModal" data-toggle="modal" data-target="#aboutModal">
-                        <i class="fa fa-info"></i>&nbsp;&Uuml;ber</a>
+                        <i class="fa fa-info" aria-hidden="true"></i>&nbsp;&Uuml;ber</a>
                 </li>
             </ul>
         </div> <!--.navbar-collapse -->
@@ -101,94 +115,32 @@
 
     <div id="cashMap"></div>
 
-    <!-- Zoom Alert -->
-    <div class="alert alert-warning fixed-bottom w-75 mx-auto text-center font-weight-bold invisible"
-         id="zoomAlert" role="alert">
-        Zoome weiter hinein für Anzeige!
-    </div>
-
-    <!--Fehler Alert -->
-    <div class="alert alert-danger fixed-bottom w-75 mx-auto text-center font-weight-bold invisible"
-         id="errorAlert" role="alert">
-    </div>
-
-    <!-- Neuanlage -->
-    <div class="modal fade" id="newFeatureModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
+    <!-- Auth Info Maske -->
+    <div class="modal fade" id="osmAuthInfoModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <div class="modal-title text-primary">Neu erfassen</div>
+                    <div class="modal-title">Anmeldung bei OpenStreetMap</div>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 </div>
 
                 <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="operatorInput">Bitte gib folgende Daten ein:</label>
-                            <input class="form-control" type="text" placeholder="Betreiber..." id="operatorInput">
-                            <small id="operatorHelp" class="form-text text-muted">
-                                OSM-Attribut: [<a target="_new"
-                                href="http://wiki.openstreetmap.org/wiki/Key:operator">operator</a>]</small>
-                        </div>
-                        <div class="form-group">
-                            <select class="form-control" id="networkSelect">
-                                <option value="" disabled selected>Verbund...</option>
-                                <option>Sparkassen-Finanzverbund</option>
-                                <option>BankCard-Netz (VR-Banken)</option>
-                                <option>CashGroup</option>
-                                <option>Cashpool</option>
-                                <option>Keiner</option>
-                            </select>
-                            <small id="networkHelp" class="form-text text-muted">
-                                OSM-Attribut: [<a target="_new"
-                                href="http://wiki.openstreetmap.org/wiki/Key:network">network</a>]
-                            </small>
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" type="text" placeholder="Stra&szlig;e..." id="streetInput">
-                            <small id="streetHelp" class="form-text text-muted">
-                                OSM-Attribut: [<a target="_new"
-                                href="http://wiki.openstreetmap.org/wiki/Key:addr:street">addr:street</a>]
-                            </small>
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" type="number" placeholder="PLZ..." id="postcodeInput">
-                            <small id="postcodeHelp" class="form-number text-muted">
-                                OSM-Attribut: [<a target="_new"
-                                href="http://wiki.openstreetmap.org/wiki/Key:addr:postcode">addr:postcode</a>]
-                                </small>
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" type="text" placeholder="Ort..." id="cityInput">
-                            <small id="cityHelp" class="form-text text-muted">
-                                OSM-Attribut: [<a target="_new"
-                                href="http://wiki.openstreetmap.org/wiki/Key:addr:city">addr:city</a>]
-                            </small>
-                        </div>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input class="form-check-input" type="checkbox">&nbsp;Unterirdisch
-                            </label>
-                            <small id="cityHelp" class="form-text text-muted">
-                                (U-Bahn, Tunnel) OSM-Attribut: [<a target="_new"
-                                                  href="http://wiki.openstreetmap.org/wiki/Key:addr:level">addr:level</a>]
-                            </small>
-                        </div>
-
-                    </form>
+                    <p>F&uuml;r die Erfassung oder &Auml;nderung von Objekten in <a href="http://www.openstreetmap.org/"
+                                                                                    target="_blank">OpenStreetMap</a> ist eine Anmeldung erforderlich.</p>
+                    <p>Alles was Du brauchst ist ein OSM Account; <a target=_new href="https://www.openstreetmap.org/user/new">registriere</a> Dich,
+                        falls Du noch keinen Account hast.</p>
+                    Anschließend kannst Du Dich anmelden.
                 </div>
-
                 <div class="modal-footer">
-                    <button type="cancel" class="btn" data-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary" data-dismiss="modal">Speichern</button>
-
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                    <button type="button" class="btn btn-primary" id="btnOsmLogin" data-dismiss="modal">Anmelden</button>
                 </div>
-            </div>
-        </div>
-    </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
-    <!-- Infodialog OSM Objekt -->
+    <!-- Anzeige OSM Feature -->
     <div class="modal fade" id="featureModal" tabindex="-1" role="dialog">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -226,15 +178,267 @@
                         <div class="tab-pane active mt-3 ml-md-3" id="feature-info" role="tabpanel"></div>
                         <div class="tab-pane mt-3 ml-md-3" id="osm-tags" role="tabpanel"></div>
                         <div class="tab-pane mt-3 ml-md-3" id="opening" role="tabpanel">
-                            <button type="button" id="newOpeningHours" class="btn bt-sm btn-outline-primary pull-right invisible">
+                            <button type="button" id="newOpeningHours" class="btn bt-sm btn-outline-primary pull-right disabled">
                                 Jetzt erfassen
                             </button>
                         </div>
-                     </div>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Schlie&szlig;en</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <!-- Neuanlage -->
+    <div class="modal fade" id="newFeatureModal" data-backdrop="static"  tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="newFeatureForm">
+
+                    <div class="modal-header">
+                        <h4 class="modal-title text-primary">Geldautomaten erfassen</h4>
+                        <button type="button" id="btnFormClose" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <input type="hidden" name="osmId" id="osmIdHidden">
+
+                        <div id="accordionNewFeature" role="tablist" aria-multiselectable="true">
+                            <div class="card">
+                                <div class="card-header" role="tab" id="headerGeneral">
+                                    <h6 class="mb-0">
+                                        <a data-toggle="collapse" data-parent="#accordionNewFeature"
+                                           href="#collapseGeneral" aria-expanded="true" aria-controls="collapseGeneral">
+                                            Allgemeine Angaben<i class="indicator fa fa-chevron-up fa-fw pull-right"></i>
+                                        </a>
+                                    </h6>
+                                </div>
+                                <div id="collapseGeneral" class="collapse show" role="tabpanel" aria-labelledby="headerGeneral">
+                                    <div class="card-block">
+                                        <div class="form-group">
+                                            <small id="operatorHelp" class="form-text text-muted ml-2">
+                                                <strong>Betreiber (erforderlich)</strong> (OSM-Attribut: [<a target="_new"
+                                                      href="http://wiki.openstreetmap.org/wiki/Key:operator">operator</a>]):
+                                            </small>
+                                            <div class="form-inline">
+                                                <label class="sr-only" for="operatorSelect">Betreiber</label>
+                                                <select class="form-control col-6" id="operatorSelect" name="operator">
+                                                    <option value="" disabled selected>Betreiber ...</option>
+                                                    <option>Andere ...</option>
+                                                    <option>Bank f&uuml;r Sozialwirtschaft</option>
+                                                    <option>Bank Santander</option>
+                                                    <option>Bankhaus August Lenz</option>
+                                                    <option>BBBank</option>
+                                                    <option>Berliner Bank</option>
+                                                    <option>BW Bank</option>
+                                                    <option>Commerzbank</option>
+                                                    <option>Deutsche Bank</option>
+                                                    <option>Euronet</option>
+                                                    <option>Hypovereinsbank</option>
+                                                    <option>IC-Cash</option>
+                                                    <option>Norisbank</option>
+                                                    <option>Pax-Bank</option>
+                                                    <option>Postbank</option>
+                                                    <option>Sparda-Bank</option>
+                                                    <option>Sparkassen ...</option>
+                                                    <option>Targo-Bank</option>
+                                                    <option>Volksbanken ...</option>
+                                                    <option>Unbekannt</option>
+                                                </select>
+                                                 <input class="form-control col-6 disabled" id="operatorInput" type="text" name="xOperator"
+                                                     placeholder="Name ...">
+                                            </div>
+                                            <label class="sr-only" for="networkSelect">Verbund</label>
+                                            <small id="networkHelp" class="form-text text-muted ml-2">
+                                                <strong>Automatenverbund</strong> (OSM-Attribut: [<a target="_new"
+                                                     href="http://wiki.openstreetmap.org/wiki/Key:network">network</a>]):
+                                            </small>
+                                            <select class="form-control" id="networkSelect" name="network">
+                                                <option value="" disabled selected>Verbund ...</option>
+                                                <option>Sparkassen-Finanzverbund</option>
+                                                <option>BankCard-Netz (VR-Banken)</option>
+                                                <option>CashGroup</option>
+                                                <option>Cashpool</option>
+                                                <option>Keiner</option>
+                                            </select>
+
+                                        </div>
+                                    </div> <!-- cardblock -->
+                                </div> <!-- collapseGeneral -->
+                            </div> <!-- card -->
+
+                            <div class="card">
+                                <div class="card-header" role="tab" id="headerOpening">
+                                    <h6 class="mb-0">
+                                        <a class="collapsed" data-toggle="collapse" data-parent="#accordionNewFeature"
+                                           href="#collapseOpening" aria-expanded="false" aria-controls="collapseOpening">
+                                            &Ouml;ffnungszeiten<i class="indicator fa fa-chevron-down fa-fw pull-right"></i>
+                                        </a>
+                                    </h6>
+                                </div>
+                                <div id="collapseOpening" class="collapse" role="tabpanel" aria-labelledby="headerOpening">
+                                    <div class="card-block">
+
+                                        <div class="form-group">
+
+                                            <input type="hidden" name="opening_hours" id="OpeningHoursHidden">
+
+                                            <select class="form-control" id="typeOpeningSelect" name="xTypeOpening">
+                                                <option value="" disabled selected>Ausw&auml;hlen ...</option>
+                                                <option value="1">24/7 (st&auml;ndig ge&ouml;ffnet/zug&auml;nglich)</option>
+                                                <option value="2">Mo-Fr, von-bis</option>
+                                                <option value="3">Eingabe nach OSM-Konvention</option>
+                                                <option value="4">Unbekannt</option>
+                                            </select>
+
+                                        </div>
+
+                                    </div>
+                                </div> <!-- collapseOpening -->
+                            </div> <!-- card -->
+                            <div class="card">
+                                <div class="card-header" role="tab" id="headerAddress">
+                                    <h6 class="mb-0">
+                                        <a class="collapsed" data-toggle="collapse" data-parent="#accordionNewFeature"
+                                           href="#collapseAddress" aria-expanded="false" aria-controls="collapseAddress">
+                                            Adresse<i class="indicator fa fa-chevron-down fa-fw pull-right"></i>
+                                        </a>
+                                    </h6>
+                                </div>
+                                <div id="collapseAddress" class="collapse" role="tabpanel" aria-labelledby="headerAddress">
+                                    <div class="card-block">
+
+                                        <div class="form-group">
+                                            <small id="streetHelp" class="text-muted ml-2">
+                                                <strong>Stra&szlig;e, Nr.</strong> (OSM-Attribut: [
+                                                <a target="_new" href="http://wiki.openstreetmap.org/wiki/Key:addr:">addr</a>]):
+                                            </small>
+                                            <div class="form-inline">
+                                                <label class="sr-only" for="streetInput">Strasse</label>
+                                                <input class="form-control col-9" id="streetInput" type="text" name="addr:street"
+                                                       placeholder="Stra&szlig;e...">
+                                                <label class="sr-only" for="numberInput">Hausnummer</label>
+                                                <input class="form-control col-3" id="numberInput" type="text" name="addr:housenumber"
+                                                       placeholder="Nr...">
+                                            </div>
+
+                                            <small id="cityHelp" class="text-muted ml-2">
+                                                <strong>Land, PLZ, Ort</strong> (OSM-Attribut: [
+                                                <a target="_new" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>]):
+                                                <span id="countryLong"></span>
+                                            </small>
+                                            <div class="form-inline">
+                                                <label class="sr-only" for="countryInput">Land</label>
+                                                <input class="form-control col-2" id="countryInput" type="text" name="addr:country"
+                                                       placeholder="Land...">
+                                                <label class="sr-only" for="postcodeInput">Postleitzahl</label>
+                                                <input class="form-control col-3" id="postcodeInput" type="number" inputmode=numeric name="addr:postcode"
+                                                       placeholder="PLZ...">
+                                                <label class="sr-only" for="cityInput">Stadt</label>
+                                                <input class="form-control col-7" id="cityInput" type="text" name="addr:city"
+                                                       placeholder="Ort...">
+                                            </div>
+                                        </div>
+
+                                    </div> <!-- card-block -->
+                                </div> <!-- collapseAddress -->
+                            </div> <!-- card -->
+                            <div class="card">
+                                <div class="card-header" role="tab" id="headerOther">
+                                    <h6 class="mb-0">
+                                        <a class="collapsed" data-toggle="collapse" data-parent="#accordionNewFeature"
+                                           href="#collapseOther" aria-expanded="false" aria-controls="collapseOther">
+                                            Zus&auml;tzliche Attribute<i class="indicator fa fa-chevron-down fa-fw pull-right" aria-hidden="true"></i>
+                                        </a>
+                                    </h6>
+                                </div>
+                                <div id="collapseOther" class="collapse" role="tabpanel" aria-labelledby="headerOther">
+                                    <div class="card-block">
+
+                                        <div class="form-group">
+                                            <small id="osmHelp" class="text-muted ml-2">
+                                                <strong>Zus&auml;tzliche </strong>
+                                                <a target="_new" href="https://wiki.openstreetmap.org/wiki/DE:Attribut">OSM-Attribute</a>:
+                                            </small>
+                                            <div class="form-inline">
+                                                <label class="sr-only" for="osmTag1">Attribut 1</label>
+                                                <input class="form-control col-5 mr-2" id="osmTag1" type="text" name="xTag1"
+                                                       placeholder="Attribut ...">
+                                                <label class="sr-only" for="osmValue1">Wert 1</label>
+                                                <input class="form-control col-5 mr-4" id="osmValue1" type="text" name="xValue1"
+                                                       placeholder="Wert ...">
+                                            </div>
+                                            <div class="form-inline">
+                                                <label class="sr-only" for="osmTag2">Attribut 2</label>
+                                                <input class="form-control col-5 mr-2" id="osmTag2" type="text" name="xTag2"
+                                                       placeholder="Attribut ...">
+                                                <label class="sr-only" for="osmValue2">Wert 2</label>
+                                                <input class="form-control col-5 mr-4" id="osmValue2" type="text" name="xValue2"
+                                                       placeholder="Wert ...">
+                                            </div>
+                                            <div class="form-inline">
+                                                <label class="sr-only" for="osmTag3">Attribut 3</label>
+                                                <input class="form-control col-5 mr-2" id="osmTag3" type="text" name="xTag3"
+                                                       placeholder="Attribut ...">
+                                                <label class="sr-only" for="osmValue3">Wert 3</label>
+                                                <input class="form-control col-5 mr-4" id="osmValue3" type="text" name="xValue3"
+                                                       placeholder="Wert ...">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> <!-- collapseOther -->
+                            </div> <!-- card -->
+                        </div> <!-- accordionNewFeature -->
+
+                        <div class="form-group">
+                            <small id="levelComment" class="form-text text-muted ml-2">
+                                <strong>Kommentar (erforderlich&nbsp;-&nbsp;</strong><a target="_new"
+                                     href="http://wiki.openstreetmap.org/wiki/DE:Good_changeset_comments">Warum?</a>):
+                            </small>
+                            <label class="sr-only" for="commentInput">Kommentar</label>
+                            <textarea class="form-control" id="commentInput" name="comment" autocomplete="on" rows="3"
+                                      placeholder="&Auml;nderungskommentar f&uuml;r die OSM Community..."></textarea>
+                        </div>
+
+                        <input type="hidden" name="latitude" id="latitudeHidden">
+                        <input type="hidden" name="longitude" id="longitudeHidden">
+
+                    </div> <!-- modal-body -->
+
+                    <div class="modal-footer">
+                        <button type="button" id="btnFormCancel" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                        <button type="submit" id="btnFormSubmit" class="btn btn-primary">Speichern</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature löschen -->
+    <div class="modal fade" id="deleteFeatureModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title text-primary" id="deleteFeatureTitle"></h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="text-danger"><strong>Willst Du dieses Objekt wirklich aus OSM l&ouml;schen?</strong></div>
+                    <div class="table-responsive mt-4" id=delFeatureOsmTags>
+                    </div>
+                    <span id=delFeatureObj></span>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Abbrechen</button>
+                    <button type="button" class="btn btn-secondary" id="btnDeleteFeature">L&ouml;schen</button>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
@@ -246,7 +450,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h4 class="modal-title text-primary">suche.cash!</h4>
+                    <h4 class="modal-title text-primary">finde.cash!</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 </div>
 
@@ -261,11 +465,11 @@
                     <p>Der Bankenverbund des Automaten wird durch die Farbe des Markers gekennzeichnet. Die Anzeige l&auml;sst sich
                         &uuml;ber das Men&uuml; <i class="fa fa-filter"></i>&nbsp;Filter</i> auf einzelne Verb&uuml;nde filtern
                         und so gegebenfalls Abhebegeb&uuml;hren vermeiden.</p>
-                    <!--
                     <p>M&ouml;chtest Du einen Geldautomaten erfassen, der nicht in der Karte verzeichnet ist, tippe lang
-                        auf den Punkt auf der Karte, an dem sich der Automat befindet und w&auml;hle "Hier neu erfassen".
-                        (Du musst einen OpenStreetMap-Account haben und angemeldet sein!)</p>
-                        -->
+                        auf den Punkt auf der Karte (oder rechter Mausklick), an dem sich der Automat befindet und w&auml;hle "Erfassen".
+                        &Uuml;ber das Men&uuml; "Erfassen/Auf der Karte" kannst Du auch eine Nadel auf der Karte dorthin setzen,
+                        wo der Automat steht, und dann die Daten eingeben.<br />
+                        (Du musst einen OpenStreetMap-Account haben und Dich &uuml;ber das Men&uuml; "OSM" anmelden.)</p>
                 </div>
 
                 <div class="modal-footer">
@@ -281,7 +485,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h4 class="modal-title text-primary">suche.cash!</h4>
+                    <h4 class="modal-title text-primary">finde.cash!</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 </div>
 
@@ -299,8 +503,7 @@
                     <!-- Tab panes -->
                     <div class="tab-content">
                         <div class="tab-pane text-muted mt-3 ml-2 active" id="impressum" role="tabpanel">
-                            Karten aus OpenStreetMap<br />
-                            Nils Vierus, Hiddenseestr. 6, D 13189 Berlin<br />
+                            <a href="http://www.osm-maps.eu" target="_new">osm-maps</a>&nbsp;-&nbsp;Karten aus OpenStreetMap<br />
                             Kontakt: info (at) osm-maps.eu
                             <div id="versionNumber" class="text-sm"></div>
                         </div>
@@ -317,19 +520,17 @@
         </div>
     </div>
 
-    <!-- Kontextmenü -->
-    <div id="contextMenu" class="dropdown-menu">
-        <!--
-        <a id="contextMenuAtmNew" class="dropdown-item disabled" href="#newFeatureModal"
-           data-toggle="modal" data-target="#newFeatureModal">Hier neu erfassen</a>
-           -->
-        <a id="contextMenuAtmNew" class="dropdown-item disabled" href="#">Hier neu erfassen</a>
-        <div class="dropdown-divider"></div>
-        <a id="contextMenuAddress" class="dropdown-item" href="#">Adresse zeigen</a>
+    <!-- Warning Alert -->
+    <div class="alert alert-warning fixed-bottom mb-2 w-75 mx-auto text-center font-weight-bold invisible"
+         id="warningAlert" role="alert">
     </div>
 
+    <!--Error Alert -->
+    <div class="alert alert-danger fixed-bottom mb-2 w-75 mx-auto text-center font-weight-bold invisible"
+         id="dangerAlert" role="alert">
+    </div>
 
-    <!-- jQuery first, then Tether, then Bootstrap JS. -->
+    <!-- jQuery first, then Tether, then Bootstrap  -->
     <script src="https://code.jquery.com/jquery-3.2.0.min.js"
             integrity="sha256-JAW99MJVpJBGcbzEuXk4Az05s/XyDdBomFqNlM3ic+I="
             crossorigin="anonymous"></script>
@@ -340,20 +541,25 @@
             integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
             crossorigin="anonymous"></script>
 
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/leaflet.locatecontrol/0.60.0/L.Control.Locate.min.js"></script>
-
 
     <script src="vendor/js/osmtogeojson.min.js"></script>
 
     <script src="vendor/js/simple-opening-hours.js"></script>
+    <script src="vendor/js/opening_hours+deps.min.js"></script>
+
     <script src="vendor/js/leaflet.awesome-markers.js"></script>
+    <script src="vendor/js/leaflet.contextmenu.js"></script>
     <script src="vendor/js/Control.Geocoder.js"></script>
     <script src="vendor/js/spin.min.js" charset="utf-8"></script>
     <script src="vendor/js/leaflet.spin.min.js" charset="utf-8"></script>
+    <script src="vendor/js/osmauth.min.js"></script>
 
-    <script src="js/cash_const.js"></script>
-    <script src="js/cash_utils.js"></script>
+    <script type="text/javascript" src="vendor/js/log4javascript.js"></script>
+
     <script src="js/cashmap.js"></script>
 
 </body>
