@@ -1,91 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
+    <title>finde.cash! - Wo ist der nächste Geldautomat?</title>
     <!-- Required meta tags -->
     <meta charset="utf-8">
+    <!-- TODO user-scalable=yes (Standard) -> wiki.selfhtml.org/wiki/HTML/Kopfdaten/meta#Viewport_einstellen -->
     <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#000000">
-    <meta name="description" content="Geldautomaten finden mit OpenStreetMap">
-    <meta name="keywords" content="ATM,cash machine,Geldautomat,Bankenverbund,Nähe,Automatenverbund,OSM,OpenStreetMap">
+    <meta name="description" content="Finde alle Geldautomaten und Bankfilialen in Deiner Nähe und ergänze sie ggf. in der OpenStreetMap-Karte (OSM) selbst.">
+    <meta name="keywords" content="ATM,cash machine,Geldautomat,Geldautomat finden,Bankenverbund,Nähe,Automatenverbund,OSM,OpenStreetMap">
     <meta name="author" content="Nils Vierus, osm-maps.eu">
 
-    <title>finde.cash! - Geldautomaten finden</title>
-
-    <!-- Bootstrap CSS alpha 4.0.0-->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
-          integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/leaflet.locatecontrol/0.60.0/L.Control.Locate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css">
+    <link rel="stylesheet" href="vendor/css/L.Control.Locate.min.css">
 
-    <link rel="stylesheet" href="vendor/css/leaflet.awesome-markers.css">
-    <link rel="stylesheet" href="vendor/css/leaflet.contextmenu.css">
-    <link rel="stylesheet" href="vendor/css/Control.Geocoder.css" />
+    <link rel="stylesheet" href="vendor/css/Control.Geocoder.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-contextmenu/1.4.0/leaflet.contextmenu.min.css">
+    <link rel="stylesheet" href="vendor/css/leaflet-vector-markers.css">
+    <link rel="stylesheet" href="vendor/css/leaflet.extra-markers.min.css">
 
-    <link rel="stylesheet" href="css/cashmap.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton@2.0.0/src/easy-button.css">
+    <link rel="stylesheet" href="vendor/bootstrap-4/dist/css/bootstrap.min.css">
 
-    <!-- TODO activate other formats
-    <link rel="apple-touch-icon" sizes="76x76" href="assets/img/favicon-76.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="assets/img/favicon-120.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="assets/img/favicon-152.png">
-    <link rel="icon" sizes="196x196" href="assets/img/favicon-196.png">
-    -->
+    <link rel="apple-touch-icon" sizes="57x57" href="./img/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="./img/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="./img/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="./img/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="./img/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="./img/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="./img/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="./img/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="./img/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="./img/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./img/favicon-16x16.png">
+    <link rel="manifest" href="./img/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="./img/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
     <link rel="icon" type="image/x-icon" href="./img/favicon.ico">
 </head>
 
 <body>
 
-    <nav class="navbar navbar-inverse navbar-fixed-top navbar-toggleable-sm bg-primary" role="navigation">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-fixed-top navbar-toggleable-sm navbar-inverse bg-primary">
 
-            <div class="navbar-header">
+        <!-- header with brand and toggleable menu -->
+        <div class="navbar-header">
 
-                <button class="navbar-toggler navbar-toggler-right mt-1" type="button"
-                        data-toggle="collapse" data-target="#cashNavbarNav"
-                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">&#9776;
-                </button>
-
-                <a class="navbar-brand pull-left" href="#">finde.cash!</a>
+            <div class="navbar-brand float-left">
+				<img src="img/Logo_EUR_white_512.png" class="logo" alt="finde.cash!">
+                <span class="logoText">&nbsp;finde.cash!</span>
             </div>
-
+            <button class="navbar-toggler navbar-toggler-right" type="button"
+                    data-toggle="collapse" data-target="#cashNavbarNav"
+                    aria-controls="cashNavbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
 
         <!-- collapsable navigation -->
         <div class="navbar-collapse collapse justify-content-stretch" id="cashNavbarNav">
 
-            <!-- navigation menu -->
+            <!-- navigation menu (list of links) -->
             <ul class="nav navbar-nav ml-auto">
-
-                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdownSelNetwork" role="button" href="#"
-                       data-toggle="dropdown"
-                       aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-filter"></i>&nbsp;Filtern</a>
-
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdownSelNetwork">
-                        <a class="dropdown-item" href="#" id="sparkassen">
-                            <i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Sparkassen</a>
-                        <a class="dropdown-item" href="#" id="vrbanken">
-                            <i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;VR-Banken</a>
-                        <a class="dropdown-item" href="#" id="cashgroup">
-                            <i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;CashGroup</a>
-                        <a class="dropdown-item" href="#" id="cashpool">
-                            <i class="fa fa-check" aria-hidden="true"></i>&nbsp;&nbsp;Cashpool</a>
-                        <a class="dropdown-item" href="#" id="sonstige">
-                            <i class="fa fa-check"></i>&nbsp;&nbsp;Sonstige</a>
-                    </div>
-                </li>
 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" id="navbarDropdownOsm" role="button" href="#"
                        data-toggle="dropdown"
                        aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-user" aria-hidden="true"></i>&nbsp;OSM [&nbsp;<span id="osmUser">nicht&nbsp;angemeldet</span>&nbsp;]</a>
+                        <i class="fa fa-user-circle fa-lg" aria-hidden="true"></i>&nbsp;OSM [&nbsp;<span id="osmUser">nicht&nbsp;angemeldet</span>&nbsp;]</a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownOsm">
-                        <a class="dropdown-item" href="#" id="osmLoginToggle"><i class="fa fa-sign-in" aria-hidden="true"></i>"></i>&nbsp;&nbsp;Anmelden</a>
+                        <a class="dropdown-item" href="#" id="osmLoginToggle"><i class="fa fa-sign-in" aria-hidden="true"></i>">&nbsp;&nbsp;Anmelden</a>
                     </div>
                 </li>
 
@@ -93,71 +87,104 @@
                     <a class="nav-link dropdown-toggle" id="navbarDropdownNew" role="button" href="#"
                        data-toggle="dropdown"
                        aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-plus" aria-hidden="true"></i>&nbsp;Erfassen</a>
+                        <i class="fa fa-plus-circle fa-lg" aria-hidden="true"></i>&nbsp;Erfassen</a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownNew">
                         <a class="dropdown-item" href="#" id="menuNewOnMap">
-                            <i class="fa fa-fw fa-map-pin" aria-hidden="true"></i>&nbsp;&nbsp;Auf der Karte</a>
+                            <i class="fa fa-fw fa-map-pin fa-lg" aria-hidden="true"></i>&nbsp;&nbsp;Auf der Karte</a>
                     </div>
                 </li>
 
                 <li class="nav-item">
                     <a class="nav-link" href="#helpModal" data-toggle="modal" data-target="#helpModal">
-                        <i class="fa fa-question" aria-hidden="true"></i>&nbsp;Hilfe</a>
+                        <i class="fa fa-question-circle fa-lg" aria-hidden="true"></i>&nbsp;Hilfe</a>
                 </li>
 
                 <li class="nav-item">
                     <a class="nav-link" href="#aboutModal" data-toggle="modal" data-target="#aboutModal">
-                        <i class="fa fa-info" aria-hidden="true"></i>&nbsp;&Uuml;ber</a>
+                        <i class="fa fa-info-circle fa-lg" aria-hidden="true"></i>&nbsp;&Uuml;ber</a>
                 </li>
             </ul>
         </div> <!--.navbar-collapse -->
     </nav>
 
-    <div id="cashMap"></div>
+    <!-- Main container -->
+    <div id="mainContainer">
+        <div id="sideBar">
+            <div class="sidebarWrapper" id="cardFeatureList">
+                <div class="card border-0">
+                    <div class="card-header border-0">
+                        <div class="card-title text-primary mb-0">In der N&auml;he
+                            <button type="button" class="close" id="btnHideSidebar" aria-hidden="true">&times;</button>
+                        </div>
+                    </div>
+                    <div class="card-block border-0 p-2">
+                        <div class="row">
+                            <label for="nameFilter" class="ml-2 col-2 col-form-label">Filter: </label>
+                            <div class="col-10 col-md-8">
+                                <input type="text" class="form-control search" placeholder="Name/Operator..." id="nameFilter"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tableWrapper">
+                    <table class="table table-sm table-hover" id="tableFeature">
+                        <tbody class="list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <main id="cashMap"></main>
+    </div>
 
-    <!-- Auth Info Maske -->
+    <!-- Auth Info -->
     <div class="modal fade" id="osmAuthInfoModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-sm">
+        <div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <div class="modal-title">Anmeldung bei OpenStreetMap</div>
+                    <div class="modal-title text-primary">Anmeldung</div>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 </div>
 
                 <div class="modal-body">
                     <p>F&uuml;r die Erfassung oder &Auml;nderung von Objekten in <a href="http://www.openstreetmap.org/"
                                                                                     target="_blank">OpenStreetMap</a> ist eine Anmeldung erforderlich.</p>
-                    <p>Alles was Du brauchst ist ein OSM Account; <a target=_new href="https://www.openstreetmap.org/user/new">registriere</a> Dich,
+                    <p>Alles was Du brauchst ist ein OSM Account; <a target="_blank" href="https://www.openstreetmap.org/user/new">registriere</a> Dich,
                         falls Du noch keinen Account hast.</p>
                     Anschließend kannst Du Dich anmelden.
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
-                    <button type="button" class="btn btn-primary" id="btnOsmLogin" data-dismiss="modal">Anmelden</button>
+                <div class="modal-footer flex-column flex-sm-row">
+                    <button type="button" class="btn btn-outline-secondary w-100 mr-0 mr-sm-1"
+                            data-dismiss="modal">Abbrechen</button>
+                    <button type="button" class="btn btn-primary w-100 mt-2 mt-sm-0 ml-0 ml-sm-1"
+                            id="btnOsmLogin" data-dismiss="modal">Anmelden</button>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
-    <!-- Anzeige OSM Feature -->
+    <!-- Feature anzeigen -->
     <div class="modal fade" id="featureModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
+        <div class="modal-dialog" role="document">
             <div class="modal-content">
 
                 <div class="modal-header">
+                    <div class="modal-title text-primary" id="feature-title"></div>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title text-primary" id="feature-title"></h4>
                 </div>
 
                 <div class="modal-body">
+                    <span id="featureObj"></span>
+                    <span id="layerObj"></span>
 
-                    <!-- Nav tabs -->
-                    <ul class="nav nav-tabs" role="tablist">
+                    <!-- Nav tabs responsive -->
+                    <ul class="nav nav-tabs" id="featureModalTabs" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active" data-toggle="tab" href="#feature-info" role="tab">Allgemein</a>
+                            <a class="nav-link d-md-none" data-toggle="tab" href="#feature-info" role="tab">
+                                Info</a>
+                            <a class="nav-link d-none d-md-block" data-toggle="tab" href="#feature-info" role="tab">
+                                Allgemein</a>
                         </li>
-
                         <li class="nav-item">
                             <a class="nav-link hidden-sm-down" data-toggle="tab" href="#opening" role="tab">
                                 &Ouml;ffnungszeiten</a>
@@ -165,47 +192,57 @@
                                 Ge&ouml;ffnet</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link hidden-sm-down" data-toggle="tab" href="#osm-tags" role="tab">
+                            <a class="nav-link hidden-sm-down" data-toggle="tab" href="#osmTags" role="tab">
                                 OpenStreetMap</a>
-                            <a class="nav-link hidden-md-up" data-toggle="tab" href="#osm-tags" role="tab">
+                            <a class="nav-link hidden-md-up" data-toggle="tab" href="#osmTags" role="tab">
                                 OSM</a>
                         </li>
-
                     </ul>
 
                     <!-- Tab panes -->
                     <div class="tab-content">
-                        <div class="tab-pane active mt-3 ml-md-3" id="feature-info" role="tabpanel"></div>
-                        <div class="tab-pane mt-3 ml-md-3" id="osm-tags" role="tabpanel"></div>
-                        <div class="tab-pane mt-3 ml-md-3" id="opening" role="tabpanel">
-                            <button type="button" id="newOpeningHours" class="btn bt-sm btn-outline-primary pull-right disabled">
+                        <div class="tab-pane mt-3 ml-md-3 active" role="tabpanel" id="feature-info"></div>
+                        <div class="tab-pane mt-3 ml-md-3" role="tabpanel" id="opening">
+                            <button type="button" id="newOpeningHours" class="btn btn-primary float-right disabled">
                                 Jetzt erfassen
                             </button>
+                        </div>
+                        <div class="tab-pane mt-3 ml-md-3" role="tabpanel" id="osmTags">
+                            <div id="osmInfoMissing"></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Schlie&szlig;en</button>
+                <div class="modal-footer flex-column flex-sm-row">
+
+                    <button type="button" id="btnRoute" class="btn btn-outline-primary w-100 mr-0 mr-sm-1"
+                            data-dismiss="modal">Route</button>
+                    <button type="button" id="btnAskForDelete" class="btn btn-outline-secondary w-100 mt-2 mt-sm-0"
+                            data-dismiss="modal">L&ouml;schen</button>
+                    <button type="button" class="btn btn-primary w-100 mt-2 mt-sm-0 ml-0 ml-sm-1"
+                            data-dismiss="modal">Schlie&szlig;en</button>
+
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
-    <!-- Neuanlage -->
-    <div class="modal fade" id="newFeatureModal" data-backdrop="static"  tabindex="-1" role="dialog">
-        <div class="modal-dialog">
+    <!-- Neuanlage Feature -->
+    <div class="modal fade" id="newFeatureModal" tabindex="-1" role="dialog" data-backdrop="static" >
+        <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <form id="newFeatureForm">
 
                     <div class="modal-header">
-                        <h4 class="modal-title text-primary">Geldautomaten erfassen</h4>
+                        <div class="modal-title text-primary">Geldautomaten erfassen</div>
                         <button type="button" id="btnFormClose" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
 
                     <div class="modal-body">
 
                         <input type="hidden" name="osmId" id="osmIdHidden">
+                        <input type="hidden" name=xLatitude" id="latitudeHidden">
+                        <input type="hidden" name=xLongitude" id="longitudeHidden">
 
                         <div id="accordionNewFeature" role="tablist" aria-multiselectable="true">
                             <div class="card">
@@ -213,7 +250,7 @@
                                     <h6 class="mb-0">
                                         <a data-toggle="collapse" data-parent="#accordionNewFeature"
                                            href="#collapseGeneral" aria-expanded="true" aria-controls="collapseGeneral">
-                                            Allgemeine Angaben<i class="indicator fa fa-chevron-up fa-fw pull-right"></i>
+                                            Allgemeine Angaben<i class="indicator fa fa-chevron-up fa-fw float-right"></i>
                                         </a>
                                     </h6>
                                 </div>
@@ -221,7 +258,7 @@
                                     <div class="card-block">
                                         <div class="form-group">
                                             <small id="operatorHelp" class="form-text text-muted ml-2">
-                                                <strong>Betreiber (erforderlich)</strong> (OSM-Attribut: [<a target="_new"
+                                                <strong>Betreiber (erforderlich)</strong> (OSM-Attribut: [<a target="_blank"
                                                       href="http://wiki.openstreetmap.org/wiki/Key:operator">operator</a>]):
                                             </small>
                                             <div class="form-inline">
@@ -249,12 +286,12 @@
                                                     <option>Volksbanken ...</option>
                                                     <option>Unbekannt</option>
                                                 </select>
-                                                 <input class="form-control col-6 disabled" id="operatorInput" type="text" name="xOperator"
+                                                 <input class="form-control col-6 disabled" id="operatorInput" type="text" name="specialOperator"
                                                      placeholder="Name ...">
                                             </div>
                                             <label class="sr-only" for="networkSelect">Verbund</label>
                                             <small id="networkHelp" class="form-text text-muted ml-2">
-                                                <strong>Automatenverbund</strong> (OSM-Attribut: [<a target="_new"
+                                                <strong>Automatenverbund</strong> (OSM-Attribut: [<a target="_blank"
                                                      href="http://wiki.openstreetmap.org/wiki/Key:network">network</a>]):
                                             </small>
                                             <select class="form-control" id="networkSelect" name="network">
@@ -276,7 +313,7 @@
                                     <h6 class="mb-0">
                                         <a class="collapsed" data-toggle="collapse" data-parent="#accordionNewFeature"
                                            href="#collapseOpening" aria-expanded="false" aria-controls="collapseOpening">
-                                            &Ouml;ffnungszeiten<i class="indicator fa fa-chevron-down fa-fw pull-right"></i>
+                                            &Ouml;ffnungszeiten<i class="indicator fa fa-chevron-down fa-fw float-right"></i>
                                         </a>
                                     </h6>
                                 </div>
@@ -285,7 +322,7 @@
 
                                         <div class="form-group">
 
-                                            <input type="hidden" name="opening_hours" id="OpeningHoursHidden">
+                                            <input type="hidden" id="OpeningHoursHidden" name="opening_hours">
 
                                             <select class="form-control" id="typeOpeningSelect" name="xTypeOpening">
                                                 <option value="" disabled selected>Ausw&auml;hlen ...</option>
@@ -305,7 +342,7 @@
                                     <h6 class="mb-0">
                                         <a class="collapsed" data-toggle="collapse" data-parent="#accordionNewFeature"
                                            href="#collapseAddress" aria-expanded="false" aria-controls="collapseAddress">
-                                            Adresse<i class="indicator fa fa-chevron-down fa-fw pull-right"></i>
+                                            Adresse<i class="indicator fa fa-chevron-down fa-fw float-right"></i>
                                         </a>
                                     </h6>
                                 </div>
@@ -315,7 +352,7 @@
                                         <div class="form-group">
                                             <small id="streetHelp" class="text-muted ml-2">
                                                 <strong>Stra&szlig;e, Nr.</strong> (OSM-Attribut: [
-                                                <a target="_new" href="http://wiki.openstreetmap.org/wiki/Key:addr:">addr</a>]):
+                                                <a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>]):
                                             </small>
                                             <div class="form-inline">
                                                 <label class="sr-only" for="streetInput">Strasse</label>
@@ -328,7 +365,7 @@
 
                                             <small id="cityHelp" class="text-muted ml-2">
                                                 <strong>Land, PLZ, Ort</strong> (OSM-Attribut: [
-                                                <a target="_new" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>]):
+                                                <a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>]):
                                                 <span id="countryLong"></span>
                                             </small>
                                             <div class="form-inline">
@@ -336,7 +373,7 @@
                                                 <input class="form-control col-2" id="countryInput" type="text" name="addr:country"
                                                        placeholder="Land...">
                                                 <label class="sr-only" for="postcodeInput">Postleitzahl</label>
-                                                <input class="form-control col-3" id="postcodeInput" type="number" inputmode=numeric name="addr:postcode"
+                                                <input class="form-control col-3" id="postcodeInput" type="number" name="addr:postcode"
                                                        placeholder="PLZ...">
                                                 <label class="sr-only" for="cityInput">Stadt</label>
                                                 <input class="form-control col-7" id="cityInput" type="text" name="addr:city"
@@ -352,7 +389,7 @@
                                     <h6 class="mb-0">
                                         <a class="collapsed" data-toggle="collapse" data-parent="#accordionNewFeature"
                                            href="#collapseOther" aria-expanded="false" aria-controls="collapseOther">
-                                            Zus&auml;tzliche Attribute<i class="indicator fa fa-chevron-down fa-fw pull-right" aria-hidden="true"></i>
+                                            Zus&auml;tzliche Attribute<i class="indicator fa fa-chevron-down fa-fw float-right" aria-hidden="true"></i>
                                         </a>
                                     </h6>
                                 </div>
@@ -362,7 +399,7 @@
                                         <div class="form-group">
                                             <small id="osmHelp" class="text-muted ml-2">
                                                 <strong>Zus&auml;tzliche </strong>
-                                                <a target="_new" href="https://wiki.openstreetmap.org/wiki/DE:Attribut">OSM-Attribute</a>:
+                                                <a target="_blank" href="https://wiki.openstreetmap.org/wiki/DE:Attribut">OSM-Attribute</a>:
                                             </small>
                                             <div class="form-inline">
                                                 <label class="sr-only" for="osmTag1">Attribut 1</label>
@@ -396,22 +433,21 @@
 
                         <div class="form-group">
                             <small id="levelComment" class="form-text text-muted ml-2">
-                                <strong>Kommentar (erforderlich&nbsp;-&nbsp;</strong><a target="_new"
+                                <strong>Kommentar (erforderlich&nbsp;-&nbsp;</strong><a target="_blank"
                                      href="http://wiki.openstreetmap.org/wiki/DE:Good_changeset_comments">Warum?</a>):
                             </small>
                             <label class="sr-only" for="commentInput">Kommentar</label>
-                            <textarea class="form-control" id="commentInput" name="comment" autocomplete="on" rows="3"
+                            <textarea class="form-control" id="commentInput" name="xComment" rows="3"
                                       placeholder="&Auml;nderungskommentar f&uuml;r die OSM Community..."></textarea>
                         </div>
 
-                        <input type="hidden" name="latitude" id="latitudeHidden">
-                        <input type="hidden" name="longitude" id="longitudeHidden">
-
                     </div> <!-- modal-body -->
 
-                    <div class="modal-footer">
-                        <button type="button" id="btnFormCancel" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
-                        <button type="submit" id="btnFormSubmit" class="btn btn-primary">Speichern</button>
+                    <div class="modal-footer flex-column flex-sm-row">
+                        <button type="button" id="btnFormCancel" class="btn btn-outline-secondary w-100 mr-0 mr-sm-1"
+                                data-dismiss="modal">Abbrechen</button>
+                        <button type="submit" id="btnFormSubmit" class="btn btn-primary w-100 ml-0 ml-sm-1 mt-2 mt-sm-0">
+                            Speichern</button>
                     </div>
 
                 </form>
@@ -419,61 +455,176 @@
         </div>
     </div>
 
-    <!-- Feature löschen -->
-    <div class="modal fade" id="deleteFeatureModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
+    <!-- Glückwunsch! -->
+    <div class="modal fade" id="congratsNewFeatureModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
 
                 <div class="modal-header">
+                    <div class="modal-title text-primary"><strong>Herzlichen Gl&uuml;ckwunsch!</strong></div>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title text-primary" id="deleteFeatureTitle"></h4>
                 </div>
-
                 <div class="modal-body">
-                    <div class="text-danger"><strong>Willst Du dieses Objekt wirklich aus OSM l&ouml;schen?</strong></div>
-                    <div class="table-responsive mt-4" id=delFeatureOsmTags>
-                    </div>
-                    <span id=delFeatureObj></span>
+                    <p>Du hast jetzt der freien Weltkarte <a href="http://www.openstreetmap.de" target="_blank">
+                        OpenStreetMap (OSM)</a> neue Daten hinzugef&uuml;gt und bist ein Teil der Community!</p>
+                    <p>Das neue Feature wird in wenigen Minuten auf der Karte verzeichnet sein (bitte Daten neu laden).</p>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">Abbrechen</button>
-                    <button type="button" class="btn btn-secondary" id="btnDeleteFeature">L&ouml;schen</button>
+                    <button type="button" class="btn btn-primary mx-auto float-md-right"
+                            data-dismiss="modal">Freut mich!</button>
                 </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <!-- Feature löschen -->
+    <div class="modal fade" id="deleteFeatureModal" tabindex="-1" role="dialog" style="overflow-y: auto">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="deleteFeatureForm">
+                    <div class="modal-header">
+                        <div class="modal-title text-primary" id="deleteFeatureTitle"></div>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <span id="delFeatureId"></span>
+                        <span id="delFeatureVersion"></span>
+                        <span id="delLatitude"></span>
+                        <span id="delLongitude"></span>
+
+                        <div class="text-danger ml-2"><strong>Willst Du dieses Objekt wirklich aus OSM l&ouml;schen?</strong></div>
+                        <div class="table table-striped mt-4 w-90 mx-auto" id="delFeatureOsmTags"></div>
+                        <div class="form-group">
+                            <small id="deleteComment" class="form-text text-muted ml-2">
+                                <strong>Kommentar (erforderlich&nbsp;-&nbsp;</strong><a target="_blank"
+                                    href="http://wiki.openstreetmap.org/wiki/DE:Good_changeset_comments">Warum?</a>):
+                            </small>
+                            <label class="sr-only" for="commentDelete">Kommentar</label>
+                            <textarea class="form-control" id="commentDelete" name="comment" rows="2"
+                                      placeholder="L&ouml;schkommentar f&uuml;r die OSM Community..."></textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer flex-column flex-sm-row">
+                        <button type="button" class="btn btn-outline-primary w-100 mr-0 mr-sm-1"
+                                data-dismiss="modal">Abbrechen</button>
+                        <button type="submit" class="btn btn-secondary w-100 ml-0 ml-sm-1 mt-2 mt-sm-0"
+                                id="btnDeleteFeature">L&ouml;schen</button>
+                    </div>
+                </form>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
     <!-- Hilfetext -->
     <div class="modal fade" id="helpModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h4 class="modal-title text-primary">finde.cash!</h4>
+                    <div class="modal-title text-primary">Was ist finde.cash?</div>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 </div>
 
                 <div class="modal-body">
-                    <p>Diese App basiert auf Daten der freien Weltkarte <a href="http://www.openstreetmap.de" target="_blank">
-                        OpenStreetMap (OSM)</a> und zeigt Dir die dort erfassten Geldautomaten und Bankfilialen mit Geldautomaten
-                        in Deiner N&auml;he an.<br />
-                        Wenn in OSM auch die &Ouml;ffnungszeiten erfasst sind, werden sie ausgewertet und das Logo
-                        (<i class="fa fa-institution"></i> - Bank, <i class="fa fa-euro"></i> - Geldautomat)
-                        in gr&uuml;n (derzeit ge&ouml;ffnet) oder rot (derzeit geschlossen) dargestellt. Wenn in OSM keine
-                        &Ouml;ffnungszeiten erfasst wurden, ist das Logo schwarz.</p>
-                    <p>Der Bankenverbund des Automaten wird durch die Farbe des Markers gekennzeichnet. Die Anzeige l&auml;sst sich
-                        &uuml;ber das Men&uuml; <i class="fa fa-filter"></i>&nbsp;Filter</i> auf einzelne Verb&uuml;nde filtern
-                        und so gegebenfalls Abhebegeb&uuml;hren vermeiden.</p>
-                    <p>M&ouml;chtest Du einen Geldautomaten erfassen, der nicht in der Karte verzeichnet ist, tippe lang
-                        auf den Punkt auf der Karte (oder rechter Mausklick), an dem sich der Automat befindet und w&auml;hle "Erfassen".
-                        &Uuml;ber das Men&uuml; "Erfassen/Auf der Karte" kannst Du auch eine Nadel auf der Karte dorthin setzen,
-                        wo der Automat steht, und dann die Daten eingeben.<br />
-                        (Du musst einen OpenStreetMap-Account haben und Dich &uuml;ber das Men&uuml; "OSM" anmelden.)</p>
+                    <!-- Nav tabs responsive -->
+                    <ul class="nav nav-tabs" id="helpModalTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link d-lg-none" data-toggle="tab" href="#helpOverview" role="tab">
+                                Info</a>
+                            <a class="nav-link d-none d-lg-block" data-toggle="tab" href="#helpOverview" role="tab">
+                                Allgemein</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link d-lg-none" data-toggle="tab" href="#helpOsm" role="tab">
+                                OSM</a>
+                            <a class="nav-link d-none d-lg-block" data-toggle="tab" href="#helpOsm" role="tab">
+                                OpenStreetMap</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link d-lg-none" data-toggle="tab" href="#helpOpening" role="tab">
+                                &Ouml;ffn.</a>
+                            <a class="nav-link d-none d-lg-block" data-toggle="tab" href="#helpOpening" role="tab">
+                                &Ouml;ffnungszeiten</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link d-lg-none" data-toggle="tab" href="#helpVerbund" role="tab">
+                                Verbund</a>
+                            <a class="nav-link d-none d-lg-block" data-toggle="tab" href="#helpVerbund" role="tab">
+                                Automatenverbund</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane active" role="tabpanel" id="helpOverview">
+                            <div class="container">
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <p>Diese App basiert auf Daten der freien Weltkarte <a href="http://www.openstreetmap.de" target="_blank">
+                                            OpenStreetMap (OSM)</a> und zeigt Dir die dort erfassten Geldautomaten und Bankfilialen mit Geldautomaten
+                                            in Deiner N&auml;he an.<br />
+                                            Wenn in OSM auch die &Ouml;ffnungszeiten erfasst sind, werden sie ausgewertet und das Logo
+                                            (<i class="fa fa-institution"></i> - Bank, <i class="fa fa-euro"></i> - Geldautomat)
+                                            in gr&uuml;n (derzeit ge&ouml;ffnet) oder rot (derzeit geschlossen) dargestellt. Wenn in OSM keine
+                                            &Ouml;ffnungszeiten erfasst wurden, ist das Logo schwarz.</p>
+                                        <p>Der Bankenverbund des Automaten wird durch die Farbe des Markers gekennzeichnet. Die Anzeige l&auml;sst sich
+                                            &uuml;ber den Auswahlbutton rechts oben auf einzelne Verb&uuml;nde filtern.</p>
+                                        <p>M&ouml;chtest Du einen Geldautomaten erfassen, der nicht in der Karte verzeichnet ist, tippe lang
+                                            auf den Punkt auf der Karte (oder rechter Mausklick) und w&auml;hle "Erfassen". Du kannst die Nadel genau an
+                                            die Stelle bewegen, an der der Automat steht. Du kannst auch &Uuml;ber das Men&uuml; "Erfassen/Auf der Karte"
+                                            eine Nadel auf die Kartenmitte setzen, per Hand verschieben und dann die Daten eingeben.</p>
+                                            (Du musst einen OpenStreetMap-Account haben und Dich &uuml;ber das Men&uuml; "OSM" anmelden.)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" role="tabpanel" id="helpOsm">
+                            <div class="container">
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <p>In OpenStreetMap haben sich einige Attribute für die Kennzeichnung von frei stehenden
+                                            Geldautomaten bzw. Bankfilialen  mit Geldautomaten etabliert:<br />
+                                        <ol>
+                                            <li>[amenity=bank] + [atm=yes] - Bankfiliale mit Geldautomat(en)</li>
+                                            <li>[amenity=atm] - Geldautomat</li>
+                                        </ol>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" role="tabpanel" id="helpOpening">
+                            <div class="container">
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <p>Die Erfassung von &Ouml;ffnungszeiten erfolgt in OSM nach einem relativ komplexen Schema, welches
+                                            alle Eventualitäten abdeckt. "Einfache" &Ouml;ffnungszeiten sind
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" role="tabpanel" id="helpVerbund">
+                            <div class="container">
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <p>Um ihren Kunden eine kostenlose Bargeldversorgung zu erm&ouml;glichen, haben sich in Deutschland
+                                            einige Banken zu bundesweiten Bankenverb&uuml;nden zusammengeschlossen.</p>
+
+                                            Details sind zu finden beim <a href="https://www.kontofinder.de/ratgeber/deutsche-bankenverbuende"
+                                                                           target="_blank">Kontofinder</a>.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Schlie&szlig;en</button>
+                    <button type="button" class="btn btn-primary mx-auto float-md-right"
+                            data-dismiss="modal">Schlie&szlig;en</button>
                 </div>
             </div>
         </div>
@@ -481,11 +632,11 @@
 
     <!-- Über cashMap -->
     <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h4 class="modal-title text-primary">finde.cash!</h4>
+                    <div class="modal-title text-primary">&Uuml;ber finde.cash!</div>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 </div>
 
@@ -499,37 +650,154 @@
                         <li class="nav-item">
                             <a class="nav-link" data-toggle="tab" href="#releaseNotes" role="tab">Versionen</a>
                         </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#credits" role="tab">Credits</a>
+                        </li>
                     </ul>
                     <!-- Tab panes -->
                     <div class="tab-content">
-                        <div class="tab-pane text-muted mt-3 ml-2 active" id="impressum" role="tabpanel">
-                            <a href="http://www.osm-maps.eu" target="_new">osm-maps</a>&nbsp;-&nbsp;Karten aus OpenStreetMap<br />
-                            Kontakt: info (at) osm-maps.eu
-                            <div id="versionNumber" class="text-sm"></div>
+                        <div class="tab-pane text-muted m-2 active" id="impressum" role="tabpanel">
+                            <div class="card m-md-4">
+                                <div class="m-4">
+                                    Entwickelt von:<br />
+                                    <span class="companyName">
+                                        <a href="http://www.osm-maps.eu" target="_blank">osm-maps</a>&nbsp;-&nbsp;
+                                        Karten aus OpenStreetMap<br />
+                                    </span>
+                                    <div class="m-2">
+                                        <i class="text-primary fa fa-envelope fa-lg" aria-hidden="true"></i>
+                                        info (at) osm-maps.eu
+                                    </div>
+                                    <div class="m-2">
+                                        <i class="text-primary fa fa-twitter fa-lg" aria-hidden="true"></i>
+                                        <a target="_blank" href="http://www.twitter.com/osmMaps">osmMaps</a>
+                                    </div>
+                                    <div id="versionNumber" class="m-2"></div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="tab-pane mt-3 ml-2 text-muted" id="releaseNotes" role="tabpanel">
+                        <div class="tab-pane my-2 mx-md-2 text-muted" id="releaseNotes" role="tabpanel">
+                        </div>
+                        <div class="tab-pane my-2 my-md-4" id="credits" role="tabpanel">
+                            <span class="text-primary">finde.cash&excl;</span>&nbsp;wurde entwickelt unter Mithilfe u.a. von:
+                            <div class="card m-md-2" id="cardCredits">
+                                <div class="scrollUp" id="textCredits">
+                                    <ul class="pl-4 pl-lg-8">
+                                        <li>
+                                            <a href="http://www.marcusbleil.de/m/" target="_blank">ATM Map</a> von
+                                                <a href="https://github.com/momolinus"  target="_blank">Marcus Bleil</a>
+                                            &nbsp;<span class="text-secondary">(Idee)</span>
+                                        </li>
+                                        <li>
+                                            <a href="http://leafletjs.com/" target="_blank">Leaflet</a>
+                                            &nbsp;<span class="text-secondary">(Karte)</span>
+                                        </li>
+                                        <li>
+                                            <a href="https://github.com/osmlab/osm-auth" target="_blank">osmauth</a>
+                                            &nbsp;<span class="text-secondary">(OSM Authorisierung)</span>
+                                        </li>
+                                        <li>
+                                            <a href="http://wiki.openstreetmap.org/wiki/Overpass_API" target="_blank">Overpass API</a>
+                                            &nbsp;<span class="text-secondary">(Daten aus OSM)</span>
+                                        </li>
+                                        <li>
+                                            <a href="https://github.com/tyrasd/osmtogeojson" target="_blank">osmtogeojson</a>
+                                            &nbsp;<span class="text-secondary">(Daten-Konvertierung)</span>
+                                        </li>
+                                        <li>
+                                            <a href="https://v4-alpha.getbootstrap.com" target="_blank">Bootstrap 4 Beta</a>&nbsp;<span class="text-secondary">(User Interface)</span>
+                                        </li>
+                                        <li>
+                                            <a href="http://jquery.com/" target="_blank">jQuery 3.2.0</a>
+                                            &nbsp;<span class="text-secondary">(JS Utilities)</span>
+                                        </li>
+                                        <li>
+                                            <a href="https://www.route360.net/" target="_blank">Route360°</a>
+                                            &nbsp;<span class="text-secondary">(Routing)</span>
+                                        </li>
+                                        <li>
+                                            <a href="https://jqueryvalidation.org/" target="_blank">.validate</a>
+                                            &nbsp;<span class="text-secondary">(Formularprüfung)</span>
+                                        </li>
+                                        <li>
+                                            <a href="http://turfjs.org/" target="_blank">turf.js</a>
+                                            &nbsp;<span class="text-secondary">(Geo-Bibliothek)</span>
+                                        </li>
+                                        <li>
+                                            <a href="https://github.com/mapbox/leaflet-pip" target="_blank">MapBox</a>
+                                            &nbsp;<span class="text-secondary">(Point in Polygon)</span>
+                                        </li>
+                                        <li>
+                                            <a href="https://github.com/opening-hours/opening_hours.js"
+                                               target="_blank">opening_hours.js</a>&nbsp;&amp;&nbsp;
+                                            <a href="https://github.com/ubahnverleih/simple-opening-hours"
+                                               target="_blank">SimpleOpeningHours()</a>
+                                            &nbsp;<span class="text-secondary">(OSM &Ouml;ffnungszeiten)</span>                                        </li>
+                                        <li>
+                                            <a href="https://github.com/domoritz/leaflet-locatecontrol"
+                                               target="_blank">Leaflet.Locate</a>
+                                            &nbsp;<span class="text-secondary">(Standortsuche)</span>
+                                        </li>
+                                        <li>
+                                            <a href="https://github.com/CliffCloud/Leaflet.EasyButton"
+                                               target="_blank">L.EasyButton</a>
+                                            &nbsp;<span class="text-secondary">(Map buttons)</span>
+                                        </li>
+                                        <li>
+                                            <a href="https://github.com/aratcliffe/Leaflet.contextmenu"
+                                               target="_blank">Leaflet.contextmenu</a>
+                                            &nbsp;<span class="text-secondary">(Kontextmenü)</span>
+                                        </li>
+                                        <li>
+                                            <a href="https://github.com/hiasinho/Leaflet.vector-markers"
+                                               target="_blank">Leaflet.vector-markers</a>
+                                            &nbsp;<span class="text-secondary">(SVG Marker)</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Schlie&szlig;en</button>
+                    <button type="button" class="btn btn-primary mx-auto float-md-right"
+                            data-dismiss="modal">Schlie&szlig;en</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Info Alert - without button -->
+    <div class="container fixed-bottom mb-3 invisible" id="infoAlert">
+        <div class="alert alert-info text-center" role="alert">
+            <div class="col-12" id="infoAlertText"></div>
+        </div>
+    </div>
+
     <!-- Warning Alert -->
-    <div class="alert alert-warning fixed-bottom mb-2 w-75 mx-auto text-center font-weight-bold invisible"
-         id="warningAlert" role="alert">
+    <div class="container col-12 col-md-8 col-lg-6 fixed-bottom mb-3 invisible" id="warningAlert">
+        <div class="alert alert-warning text-center" role="alert">
+            <div class="col-12" id="warningAlertText">
+            </div>
+            <button type="button" class="btn btn-primary mt-2"
+                    data-dismiss="alert">Schlie&szlig;en</button>
+        </div>
     </div>
 
-    <!--Error Alert -->
-    <div class="alert alert-danger fixed-bottom mb-2 w-75 mx-auto text-center font-weight-bold invisible"
-         id="dangerAlert" role="alert">
+    <!-- Danger Alert -->
+    <div class="container col-12 col-md-8 col-lg-6 fixed-bottom mb-3 invisible" id="dangerAlert">
+        <div class="alert alert-danger text-center" role="alert">
+            <div class="col-12" id="dangerAlertText">
+            </div>
+            <button type="button" class="btn btn-primary mt-2"
+                    data-dismiss="alert">Schlie&szlig;en</button>
+        </div>
     </div>
 
+    <!-- CDN -->
     <!-- jQuery first, then Tether, then Bootstrap  -->
     <script src="https://code.jquery.com/jquery-3.2.0.min.js"
             integrity="sha256-JAW99MJVpJBGcbzEuXk4Az05s/XyDdBomFqNlM3ic+I="
@@ -537,29 +805,43 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
             integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
             crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
-            integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
-            crossorigin="anonymous"></script>
 
+    <!-- customized bootstrap -->
+    <script src="vendor/bootstrap-4/dist/js/bootstrap.min.js"></script>
+
+    <!-- CDNs -->
     <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.js"></script>
     <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/leaflet.locatecontrol/0.60.0/L.Control.Locate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js"></script>
+    <script src="https://unpkg.com/@mapbox/leaflet-pip@latest/leaflet-pip.js"></script>
 
+    <!-- Downloaded from GitHub -->
+    <script src="vendor/js/L.Control.Locate.min.js"></script>
     <script src="vendor/js/osmtogeojson.min.js"></script>
 
     <script src="vendor/js/simple-opening-hours.js"></script>
     <script src="vendor/js/opening_hours+deps.min.js"></script>
 
-    <script src="vendor/js/leaflet.awesome-markers.js"></script>
-    <script src="vendor/js/leaflet.contextmenu.js"></script>
+    <!-- CDNs -->
+    <script src="https://releases.route360.net/r360-js/latest.js"></script>
+    <script src="https://unpkg.com/@turf/turf@3.5.2/turf.min.js"></script>
+
+    <!-- downloaded from Github and modified -->
+    <script src="vendor/js/leaflet-vector-markers-cashmap.js"></script>
+
+    <!-- CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-contextmenu/1.4.0/leaflet.contextmenu.min.js"></script>
+    <script src="https://unpkg.com/leaflet-easybutton@2.0.0/src/easy-button.js"></script>
+
+    <!-- Downloaded from GitHub -->
     <script src="vendor/js/Control.Geocoder.js"></script>
     <script src="vendor/js/spin.min.js" charset="utf-8"></script>
     <script src="vendor/js/leaflet.spin.min.js" charset="utf-8"></script>
     <script src="vendor/js/osmauth.min.js"></script>
+    <script src="vendor/js/log4javascript.js"></script>
 
-    <script type="text/javascript" src="vendor/js/log4javascript.js"></script>
-
+    <!-- App source -->
     <script src="js/cashmap.js"></script>
 
 </body>

@@ -1,0 +1,392 @@
+/**
+ * Basic css für screen size xs (up to 575 px)
+
+   // Small devices sm (landscape phones, 576px and up)
+  @media (min-width: 576px) { ... }
+
+  // Medium devices md (tablets, 768px and up)
+  @media (min-width: 768px) { ... }
+
+  // Large devices lg (desktops, 992px and up)
+  @media (min-width: 992px) { ... }
+
+  // Extra large devices xl (large desktops, 1200px and up)
+  @media (min-width: 1200px) { ... }
+
+ */
+
+/********************* body, main, map *****************/
+html, body, #mainContainer {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+// padding bottom to shift map down for navbar
+body {
+  padding-bottom: 60px;
+  font-family: $font-family-sans-serif;
+}
+
+// mandatory for leaflet maps
+#cashMap {
+  width: auto;
+  height: 100%;
+}
+
+/***********   #sideBar   ******************************/
+
+// hide sidebar
+#sideBar {
+  display: none;
+  width: 350px;
+  max-width: 100%;
+  height: 100%;
+  float: left;
+}
+
+// wrapper for scrollable table
+.sidebarWrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+// sidebar header
+.card-title {
+  font-size: 1.25rem;
+  line-height: 1.5rem;
+  vertical-align: middle;
+}
+
+/********* Sidebar - Table *****************************/
+
+.tableWrapper {
+  position: absolute;
+  width: 100%;
+  top: 105px;
+  bottom: 0px;
+  overflow-x: auto;
+}
+
+/* sidebar row */
+.featureRow {
+  line-height: 2rem;
+  cursor: pointer;
+  width: 300px;
+}
+
+// hover color
+.table-hover > tbody > tr:hover > td {
+  background-color: #78C2AD;
+  color: white;
+}
+
+
+// distance nowrap and right aligned
+.featureDistance {
+  text-align: right;
+}
+
+/*
+// sort symbol per column instead of button
+button.sort {
+  padding: 0;
+  cursor: pointer;
+  background: 0 0;
+  border: 0;
+  -webkit-appearance: none;
+}
+*/
+
+/**************** Easy buttons *************************/
+
+// enlarge fa icons
+.fa.fa-chevron-right, .fa.fa-refresh {
+  font-size: 18px;
+}
+
+
+// hide if disabled on all screens
+.easy-button-button.disabled {
+  display: none;
+}
+
+.easy-button-button.enabled {
+  display: block;
+}
+/**************** Diverse ******************************/
+// shorten attribution strings
+.hideAttr {
+  display: none;
+}
+
+// logo size and alignment
+.logo {
+  vertical-align: top;
+  width: 35px;
+  height: 35px;
+}
+.logoText {
+  font-size: 1.5rem;
+}
+
+// placeholder in form fields
+.form-control {
+  font-family: $font-family-sans-serif;
+}
+
+#textCredits {
+  font-size: .9rem;
+  line-height: 1.4rem;
+}
+
+.companyName {
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1.5rem;
+}
+/**************** Alert Boxes *************************/
+// show alert boxes on top
+.alert {
+  z-index: 1000;
+}
+
+/**************** Modals ******************************/
+// smaller header line
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.1;
+  margin-bottom: .2rem;
+}
+
+/**************** Forms *******************************/
+/* hide select entry in network select */
+/* TODO check browser compat */
+option[value=""][disabled] {
+  display: none;
+}
+
+/**************** Navbar ******************************/
+.navbar-brand {
+  font-size: 1.5rem;
+}
+
+.navbar-toggler-icon {
+  color: $brand-secondary;
+}
+
+/**************** Tabs ********************************/
+// shrink to fit text in tabs
+a.nav-link {
+  padding: .5em .5em;
+}
+
+/**************** Leaflet *****************************/
+
+// popup not wider than screen
+.leaflet-popup-content-wrapper,
+.leaflet-popup-content {
+
+  max-width: 300px;
+
+}
+
+// set font
+.leaflet-popup-content,
+.leaflet-control-layers-base,
+.leaflet-control-geocoder-form {
+
+  font-family: $font-family-sans-serif
+
+}
+
+// smaller popup font
+.leaflet-popup-content {
+
+  font-size: .9rem;
+
+}
+
+// leaflet context menu, size and line height
+.leaflet-contextmenu a.leaflet-contextmenu-item {
+
+  font-size: 1.3rem;
+  line-height: 2;
+
+}
+
+// adjust context menu icon vertically
+img.leaflet-contextmenu-icon {
+
+  margin: .7rem .5rem 0 0
+
+}
+
+/**************** About *****************************/
+// auto scrolling text
+.scrollUp {
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+}
+
+.scrollUp ul {
+
+  /* Starting position */
+  -moz-transform:translateY(100%);
+  -webkit-transform:translateY(100%);
+  transform:translateY(100%);
+  /* Apply animation to this element */
+  -moz-animation: scroll-up 15s linear infinite;
+  -webkit-animation: scroll-up 15s linear infinite;
+  animation: scroll-up 15s linear infinite;
+}
+/* Move it (define the animation) */
+@-moz-keyframes scroll-up {
+  0%   { -moz-transform: translateY(50%); }
+  100% { -moz-transform: translateY(-100%); }
+}
+@-webkit-keyframes scroll-up {
+  0%   { -webkit-transform: translateY(50%); }
+  100% { -webkit-transform: translateY(-100%); }
+}
+@keyframes scroll-up {
+  0%   {
+    -moz-transform: translateY(50%); /* Browser bug fix */
+    -webkit-transform: translateY(50%); /* Browser bug fix */
+    transform: translateY(50%);
+  }
+  100% {
+    -moz-transform: translateY(-100%); /* Browser bug fix */
+    -webkit-transform: translateY(-100%); /* Browser bug fix */
+    transform: translateY(-100%);
+  }
+}
+
+
+
+// M E D I A    Q U E R I E S   =============================================================
+
+/*
+ * XS is default (mobile first)
+ */
+// Only Extra small devices (portrait phones, 1 .. 576px width)
+
+/*
+ * orientation landscape
+ */
+@media screen and (max-width: 576px) and (orientation: landscape) {
+
+  .leaflet-control-geocoder .leaflet-bar .leaflet-control,
+  .leaflet-control-locate .leaflet-bar .leaflet-control,
+  .leaflet-bar .easy-button-container .leaflet-control
+  {
+    margin-bottom: 2px;
+  }
+}
+
+
+/*
+ *    SMALL  and up (SM..XL) (< 577 px width)
+ */
+@include media-breakpoint-up(sm) {
+
+  // larger popup font
+  .leaflet-popup-content {
+
+    font-size: 1.1rem;
+
+  }
+
+  // adjust context menu line height
+  .leaflet-contextmenu a.leaflet-contextmenu-item {
+
+    font-size: 1.1rem;
+    line-height: 1.5;
+
+  }
+
+  // adjust context menu icon vertically
+  img.leaflet-contextmenu-icon {
+    margin: .3rem .5rem 0 0
+  }
+
+  // smaller header line
+  .modal-title {
+    font-weight: bold;
+  }
+
+  // shrink to fit text in tabs
+  a.nav-link {
+    padding: .5em 1em;
+  }
+
+  // round buttons
+  $btn-border-radius: 1.5rem;
+
+}
+
+/*
+ *     MEDIUM and UP
+ *     Medium & larger devices (tablets, 768px and up)
+*/
+@include media-breakpoint-up(md) {
+
+  #sideBar {
+    display: block;
+  }
+
+    // larger header line
+  .modal-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  // round buttons
+  $btn-border-radius: .5rem;
+
+  #textCredits {
+    font-size: 1.2rem;
+    line-height: 1.8rem;
+  }
+
+  .companyName {
+    font-size: 1.5rem;
+    font-weight: bolder;
+    line-height: 2rem;
+  }
+}
+
+
+/*
+ *     LARGE and UP
+ *     Large devices (desktop, 992px and up)
+*/
+@include media-breakpoint-up(lg) {
+
+  .scrollUp {
+    height: 300px;
+    overflow: hidden;
+    position: relative;
+  }
+
+}
+
+
+// Extra large devices (large desktops, 1200px and up)
+@include media-breakpoint-up(xl) {
+
+}
+
+
+// underline text links on touch devices (since lack of hover effect on touch devices)
+@media (pointer: coarse) {
+
+  // select only links opening new windows (OSM Help)
+  a[target=_blank] {
+    text-decoration: underline;
+  }
+
+}

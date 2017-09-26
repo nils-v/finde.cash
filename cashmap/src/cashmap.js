@@ -18,8 +18,8 @@ var VERSION = [
 
 var RELEASE_NOTES = [];
 
-RELEASE_NOTES['0.9.5'] = '<p>Auf Tablets/Desktops gibt es jetzt links eine einklappbare Liste aller Geldautomaten/Bankfilialen ' +
-	'im Kartenausschnitt. Wurde der Standort ermittelt, wird die Entfernung (Luftlinie) vom Standort zum ' +
+RELEASE_NOTES['0.9.5'] = '<p>Auf Tablets/Desktops gibt es jetzt links eine einklappbare Liste aller Geldautomaten bzw. ' +
+	'Bankfilialen im Kartenausschnitt. Wurde der Standort ermittelt, wird die Entfernung (Luftlinie) vom Standort zum ' +
 	'Automaten angezeigt (Symbol: <i class="fa fa-location-arrow"></i>), andernfalls von der Kartenmitte ' +
 	'zum Automaten (Symbol: <i class="fa fa-crosshairs"></i>).' +
 	'Die Liste ist nach Entfernung aufsteigend sortiert und kann nach Name/Operator gefiltert werden.</p>' +
@@ -545,7 +545,7 @@ cashMap.on('locationerror', function(e) {
 
 	hideInfo();
 	if (cashMap.getZoom() < MIN_ZOOM) {
-		ErrText += ' Zoome weiter hinein, um Daten anzuzeigen!';
+		ErrText += '<br />Zoome weiter hinein, um Daten anzuzeigen!';
 	}
 
 	crosshair.addTo(cashMap);
@@ -2203,7 +2203,7 @@ function showRoute (src, tgt) {
 				console.log('routing error: ' + errcode + '/' + errmsg);
 
 				// TODO translate error msg
-				showError('routing error: ' + errmsg);
+				showError('Fehler beim Routing: <br />' + errmsg);
 
 				if (cashMap.hasLayer(routeSrcMarker)) {
 					cashMap.removeLayer(routeSrcMarker);
