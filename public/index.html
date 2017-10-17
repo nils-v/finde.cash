@@ -57,8 +57,8 @@
         <div class="navbar-header">
 
             <div class="navbar-brand float-left">
-				<img src="img/Logo_EUR_white_512.png" class="logo" alt="finde.cash!">
-                <span class="logoText">&nbsp;finde.cash!</span>
+				<img width="80" height="35" src="img/Logo_brand.svg" class="logoBrand" alt="finde.cash!">
+                <span class="logoText">finde.cash!</span>
             </div>
             <button class="navbar-toggler navbar-toggler-right" type="button"
                     data-toggle="collapse" data-target="#cashNavbarNav"
@@ -153,6 +153,7 @@
                         falls Du noch keinen Account hast.</p>
                     Anschließend kannst Du Dich anmelden.
                 </div>
+
                 <div class="modal-footer flex-column flex-sm-row">
                     <button type="button" class="btn btn-outline-secondary w-100 mr-0 mr-sm-1"
                             data-dismiss="modal">Abbrechen</button>
@@ -186,37 +187,46 @@
                                 Allgemein</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link hidden-sm-down" data-toggle="tab" href="#opening" role="tab">
-                                &Ouml;ffnungszeiten</a>
-                            <a class="nav-link hidden-md-up" data-toggle="tab" href="#opening" role="tab">
+                            <a class="nav-link d-md-none" data-toggle="tab" href="#openingTable" role="tab">
                                 Ge&ouml;ffnet</a>
+                            <a class="nav-link d-none d-md-block" data-toggle="tab" href="#openingTable" role="tab">
+                                &Ouml;ffnungszeiten</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link hidden-sm-down" data-toggle="tab" href="#osmTags" role="tab">
-                                OpenStreetMap</a>
-                            <a class="nav-link hidden-md-up" data-toggle="tab" href="#osmTags" role="tab">
+                            <a class="nav-link d-md-none" data-toggle="tab" href="#osmTags" role="tab">
                                 OSM</a>
+                            <a class="nav-link d-none d-md-block" data-toggle="tab" href="#osmTags" role="tab">
+                                OpenStreetMap</a>
                         </li>
                     </ul>
 
                     <!-- Tab panes -->
                     <div class="tab-content">
-                        <div class="tab-pane mt-3 ml-md-3 active" role="tabpanel" id="feature-info"></div>
-                        <div class="tab-pane mt-3 ml-md-3" role="tabpanel" id="opening">
-                            <button type="button" id="newOpeningHours" class="btn btn-primary float-right disabled">
-                                Jetzt erfassen
-                            </button>
+                        <div class="tab-pane mt-3 m-md-3 active" role="tabpanel" id="feature-info">
+                            <div id="infoText"></div>
+                            <div class="featureLogo" id="logoSVG"></div>
                         </div>
-                        <div class="tab-pane mt-3 ml-md-3" role="tabpanel" id="osmTags">
+                        <div class="tab-pane mt-3 m-md-3" role="tabpanel" id="openingTable"></div>
+                        <div class="tab-pane mt-3 m-md-3" role="tabpanel" id="osmTags">
+                            <div id="osmTagsTable"></div>
                             <div id="osmInfoMissing"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer flex-column flex-sm-row">
+                    <div class="dropdown w-100 mr-0 mr-sm-1">
+                        <a role="button" class="btn btn-outline-info dropdown-toggle w-100"
+                                data-toggle="dropdown" id="showRoute" aria-haspopup="true" aria-expanded="false">
+                            <span class="sr-only">Route</span>Zeige Route
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="showRoute">
+                            <a class="dropdown-item" href="#" id="btnRouteZuFuss" data-dismiss="modal">Zu Fu&szlig;</a>
+                            <a class="dropdown-item" href="#" id="btnRouteRad" data-dismiss="modal">Mit dem Fahrrad</a>
+                            <a class="dropdown-item" href="#" id="btnRouteOEPNV" data-dismiss="modal">Mit dem &Ouml;PNV</a>
+                        </div>
+                    </div>
 
-                    <button type="button" id="btnRoute" class="btn btn-outline-primary w-100 mr-0 mr-sm-1"
-                            data-dismiss="modal">Route</button>
                     <button type="button" id="btnAskForDelete" class="btn btn-outline-secondary w-100 mt-2 mt-sm-0"
                             data-dismiss="modal">L&ouml;schen</button>
                     <button type="button" class="btn btn-primary w-100 mt-2 mt-sm-0 ml-0 ml-sm-1"
@@ -241,8 +251,8 @@
                     <div class="modal-body">
 
                         <input type="hidden" name="osmId" id="osmIdHidden">
-                        <input type="hidden" name=xLatitude" id="latitudeHidden">
-                        <input type="hidden" name=xLongitude" id="longitudeHidden">
+                        <input type="hidden" name="xLatitude" id="latitudeHidden">
+                        <input type="hidden" name="xLongitude" id="longitudeHidden">
 
                         <div id="accordionNewFeature" role="tablist" aria-multiselectable="true">
                             <div class="card">
@@ -272,6 +282,7 @@
                                                     <option>BBBank</option>
                                                     <option>Berliner Bank</option>
                                                     <option>BW Bank</option>
+                                                    <option>CardPoint</option>
                                                     <option>Commerzbank</option>
                                                     <option>Deutsche Bank</option>
                                                     <option>Euronet</option>
@@ -280,6 +291,7 @@
                                                     <option>Norisbank</option>
                                                     <option>Pax-Bank</option>
                                                     <option>Postbank</option>
+                                                    <option>ReiseBank</option>
                                                     <option>Sparda-Bank</option>
                                                     <option>Sparkassen ...</option>
                                                     <option>Targo-Bank</option>
@@ -546,13 +558,13 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link d-lg-none" data-toggle="tab" href="#helpOpening" role="tab">
-                                &Ouml;ffn.</a>
+                                &Ouml;ff.-Zeit</a>
                             <a class="nav-link d-none d-lg-block" data-toggle="tab" href="#helpOpening" role="tab">
                                 &Ouml;ffnungszeiten</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link d-lg-none" data-toggle="tab" href="#helpVerbund" role="tab">
-                                Verbund</a>
+                                Verb.</a>
                             <a class="nav-link d-none d-lg-block" data-toggle="tab" href="#helpVerbund" role="tab">
                                 Automatenverbund</a>
                         </li>
@@ -573,8 +585,8 @@
                                             &uuml;ber den Auswahlbutton rechts oben auf einzelne Verb&uuml;nde filtern.</p>
                                         <p>M&ouml;chtest Du einen Geldautomaten erfassen, der nicht in der Karte verzeichnet ist, tippe lang
                                             auf den Punkt auf der Karte (oder rechter Mausklick) und w&auml;hle "Erfassen". Du kannst die Nadel genau an
-                                            die Stelle bewegen, an der der Automat steht. Du kannst auch &Uuml;ber das Men&uuml; "Erfassen/Auf der Karte"
-                                            eine Nadel auf die Kartenmitte setzen, per Hand verschieben und dann die Daten eingeben.</p>
+                                            die Stelle bewegen, an der der Automat steht. Du kannst auch &uuml;ber das Men&uuml; "Erfassen/Auf der Karte"
+                                            eine Nadel auf die Kartenmitte setzen, per Hand verschieben und dann die Daten eingeben.
                                             (Du musst einen OpenStreetMap-Account haben und Dich &uuml;ber das Men&uuml; "OSM" anmelden.)</p>
                                     </div>
                                 </div>
@@ -584,13 +596,34 @@
                             <div class="container">
                                 <div class="row mt-2">
                                     <div class="col-12">
-                                        <p>In OpenStreetMap haben sich einige Attribute für die Kennzeichnung von frei stehenden
-                                            Geldautomaten bzw. Bankfilialen  mit Geldautomaten etabliert:<br />
-                                        <ol>
-                                            <li>[amenity=bank] + [atm=yes] - Bankfiliale mit Geldautomat(en)</li>
-                                            <li>[amenity=atm] - Geldautomat</li>
-                                        </ol>
-
+                                        <p>In OpenStreetMap werden gew&ouml;hnlich folgende Attribute für die Kennzeichnung von Geldautomaten bzw. Bankfilialen
+                                            mit Geldautomaten verwendet (<a href="http://wiki.openstreetmap.org/wiki/DE:Tag:amenity%3Datm" target="_blank">OSM-Wiki</a>): <br />
+                                            <ul class="pl-4 pl-lg-8">
+                                            <li><span class="text-info">[amenity=bank]</span>: Bankfiliale</li>
+                                            <li><span class="text-info">[amenity=bank]</span>&nbsp;+&nbsp;<span class="text-info">[atm=yes]</span>: Bankfiliale und Geldautomat(en)</li>
+                                            <li><span class="text-info">[amenity=atm]</span>: Einzelner Geldautomat</li>
+                                            </ul>
+                                        <p>
+                                            <span class="text-secondary">finde.cash&excl;</span> zeigt nur Geldautomaten (
+                                            <span class="text-info">[amenity=atm]</span>, Markersymbol <i class="fa fa-euro"></i>) und Bankfilialen mit Geldautomaten (
+                                            <span class="text-info">[amenity=bank]</span>&nbsp;+&nbsp;<span class="text-info">[atm=yes]</span>,
+                                            Markersymbol: <i class="fa fa-institution"></i>) an. Die Erfassung erfolgt i.d.R. als Knoten
+                                            (<a href="http://wiki.openstreetmap.org/wiki/DE:Node" target="_blank">node</a>), diese werden als farbige Marker angezeigt,
+                                            es werden aber auch Bankfilialen als Linie (<a href="http://wiki.openstreetmap.org/wiki/DE:Way" target="_blank">way</a>)
+                                            erfasst, diese werden in <span class="text-secondary">finde.cash&excl;</span> als farbige Polygone angezeigt.
+                                        </p>
+                                        <p>Derzeit lassen sich mit <span class="text-secondary">finde.cash&excl;</span> nur Geldautomaten in OpenStreetMap anlegen, keine Bankfilialen.
+                                            Das Attribut <span class="text-info">[amenity=atm]</span> wird bei neu angelegten Objekten automatisch vergeben. Die Eingabe eines
+                                            Institutsnamens bzw. eines Operators ist zwingend, dabei kann aus einer Liste der gebr&auml;uchlichsten Institute in Deutschland
+                                            ausgew&auml;hlt oder ein abweichender Name erfasst werden.
+                                            Der dazugehörige Bankenverbund wird anhand des erfassten Instituts-Namens aus einer Liste vorausgew&auml;hlt, kann aber noch verändert werden.
+                                            Die vermutliche Adresse des neuen Objekts wird aus seiner geografischen Position auf der Karte ermittelt und zur Erfassung angeboten.
+                                            Vor der Speicherung sollte sie gepr&uuml;ft und ggf. korrigiert werden. Werden die Adressfelder geleert, wird in OSM keine Adresse erfasst.
+                                        </p>
+                                        <p>Du kannst max. 3 zusätzliche Attribute angeben, &uuml;blich sind <span class="text-info">[source=]</span> zur Beschreibung der Quelle
+                                            der Eintragung (z.B. <span class="text-info">survey</span> - eigene Beobachtung). Für einen Geldautomaten in einem Fußg&auml;ngertunnel
+                                            bzw. U-Bahnhof (1. Untergeschoss) kann das Attribut <span class="text-info">[level=-1]</span> erfasst werden.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -599,8 +632,32 @@
                             <div class="container">
                                 <div class="row mt-2">
                                     <div class="col-12">
-                                        <p>Die Erfassung von &Ouml;ffnungszeiten erfolgt in OSM nach einem relativ komplexen Schema, welches
-                                            alle Eventualitäten abdeckt. "Einfache" &Ouml;ffnungszeiten sind
+                                        <p>Die Erfassung von &Ouml;ffnungszeiten erfolgt in OSM nach einem komplexen Schema, welches
+                                            alle Anwendungsf&auml;lle abdecken soll. Prinzipiell wird daf&uuml;r das Attribut
+                                            <span class="text-info">[opening_hours]</span> verwendet.
+                                            In <a href="http://blog.openstreetmap.de/blog/2015/04/wochenaufgabe-oeffnungszeiten/" target="_blank">dieser OSM-Wochennotiz</a>
+                                            aus dem Jahr 2015 ist die Verfahrensweise zur Eintragung von &Ouml;ffnungszeiten beschrieben. Ein kurzes englisches Tutorial
+                                            gibt es <a href="http://wiki.openstreetmap.org/wiki/Key:opening_hours/Tutorial" target="_blank">hier</a>.</p>
+                                        <p>
+                                            <span class="text-secondary">finde.cash&excl;</span> erleichtert Dir die Eingabe von &Ouml;ffnungszeiten durch eine Vorauswahl:
+                                            <ul class="pl-4 pl-lg-8">
+                                                <li class="text-info">24/7 - st&auml;ndig ge&ouml;ffnet/zug&auml;nglich</li>
+                                                <p>Die Kurzform <strong>"24/7"</strong> ist Teil der OSM Konvention und steht f&uuml;r eine &Ouml;ffnungszeit von 0:00-24:00 Uhr
+                                                    an sieben Tagen in der Woche. Bei der Erfassung von Geldautomaten ist im Regelfall diese Auswahl zu treffen,
+                                                    es sei denn, der Automat befindet sich in einem Geb&auml;ude mit eigener &Ouml;ffnungszeit. In diesem Fall sollte die
+                                                    &Ouml;ffnungszeit des Geb&auml;udes f&uuml;r den Geldautomaten &uuml;bernommen werden.</p>
+                                                <li class="text-info">Mo-Fr, von-bis</li>
+                                                <p>Mit dieser Auswahl ist es m&ouml;glich, zwei &Ouml;ffnungsintervalle anzugeben, die sich von Mo-Fr t&auml;glich wiederholen.
+                                                    (Bsp: "Mo-Fr: 08:00-12:00 und 14:00-16:00"). F&uuml;lle einfach eines oder beide Intervalle aus,
+                                                    <span class="text-secondary">finde.cash&excl;</span> tr&auml;gt das Attribut <span class="text-info">[opening_hours]</span>
+                                                    korrekt für Dich in die OSM-Datenbank ein.
+                                                </p>
+                                                <li class="text-info">Eingabe nach OSM-Konvention</li>
+                                                <p>Durch die freie Eingabe einer &Ouml;ffnungszeit gem&auml;ss
+                                                    <a href="http://wiki.openstreetmap.org/wiki/DE:Key:opening_hours" target="_blank">OSM-Konvention</a> lassen sich
+                                                    alle Varianten erfassen.</p>
+                                            </ul>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -609,11 +666,34 @@
                             <div class="container">
                                 <div class="row mt-2">
                                     <div class="col-12">
-                                        <p>Um ihren Kunden eine kostenlose Bargeldversorgung zu erm&ouml;glichen, haben sich in Deutschland
-                                            einige Banken zu bundesweiten Bankenverb&uuml;nden zusammengeschlossen.</p>
-
-                                            Details sind zu finden beim <a href="https://www.kontofinder.de/ratgeber/deutsche-bankenverbuende"
-                                                                           target="_blank">Kontofinder</a>.
+                                        <p>Um ihren Kunden eine kostenlose Bargeldversorgung nicht nur an den eigenen Geldautomaten zu erm&ouml;glichen, haben sich
+                                            in Deutschland  viele Banken zu bundesweiten Bankenverb&uuml;nden zusammengeschlossen:
+                                            <ul>
+                                                <li class="text-info">Sparkassenverbund</li>
+                                                    <p>Ca. 25.000 Geldutomaten der Sparkassen</p>
+                                                <li class="text-info">BankCard Servicenetz</li>
+                                                    <p>Ca. 18.000 Geldautomaten der Volks- und Raiffeisenbanken, PSD Banken; au&szlig;erdem: BBBank,
+                                                        Bank für Sozialwirtschaft, Sparda-Banken (Doppelmitgliedschaft mit Cashpool)
+                                                        [<a href="https://de.wikipedia.org/wiki/Bankcard-Servicenetz" target="_blank">Details</a>]
+                                                    </p>
+                                                <li class="text-info">Cash Group</li>
+                                                    <p>Ca. 9000 Geldautomaten von Deutsche Bank, Commerzbank, HypoVereinsbank, Postbank und deren Tochterbanken
+                                                        [<a href="https://de.wikipedia.org/wiki/Cash_Group" target="_blank">Details</a>]
+                                                    </p>
+                                                <li class="text-info">Cashpool</li>
+                                                    <p>Ca. 2.900 Geldautomaten von Sparda-Banken, Targobank (ehemals: Citibank), Santander Consumer Bank, Pax-Bank,
+                                                        Bank für Sozialwirtschaft und verschiedenen kleineren Banken
+                                                        [<a href="https://de.wikipedia.org/wiki/Cashpool" target="_blank">Details</a>]
+                                                    </p>
+                                                <li class="text-info">&Uuml;brige</li>
+                                                    <p>Hier finden sich haupts&auml;chlich die auf Geldautomaten spezialisierten Anbieter wie Euronet, Cardpoint und IC-Cash,
+                                                        au&szlig;erdem Bankhaus Lenz, ReiseBank und einige Direktbanken, wie die ING-DiBa, Consorsbank, Volkswagen Bank oder die DKB-Bank
+                                                    </p>
+                                            </ul>
+                                        </p>
+                                        <p>Weitere Details auch beim <a href="https://www.kontofinder.de/ratgeber/deutsche-bankenverbuende"
+                                                       target="_blank">Kontofinder</a>.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -685,7 +765,7 @@
                                 <div class="scrollUp" id="textCredits">
                                     <ul class="pl-4 pl-lg-8">
                                         <li>
-                                            <a href="http://www.marcusbleil.de/m/" target="_blank">ATM Map</a> von
+                                            <a href="http://www.geldautomaten-suche.org/" target="_blank">ATM Map</a> von
                                                 <a href="https://github.com/momolinus"  target="_blank">Marcus Bleil</a>
                                             &nbsp;<span class="text-secondary">(Idee)</span>
                                         </li>
@@ -706,7 +786,12 @@
                                             &nbsp;<span class="text-secondary">(Daten-Konvertierung)</span>
                                         </li>
                                         <li>
-                                            <a href="https://v4-alpha.getbootstrap.com" target="_blank">Bootstrap 4 Beta</a>&nbsp;<span class="text-secondary">(User Interface)</span>
+                                            <a href="https://v4-alpha.getbootstrap.com" target="_blank">Bootstrap 4 Beta</a>
+                                            &nbsp;<span class="text-secondary">(User Interface)</span>
+                                        </li>
+                                        <li>
+                                            <a href="https://bootswatch.com/4-alpha/minty/" target="_blank">Bootswatch</a>
+                                            &nbsp;<span class="text-secondary">(UI Theme)</span>
                                         </li>
                                         <li>
                                             <a href="http://jquery.com/" target="_blank">jQuery 3.2.0</a>
@@ -771,9 +856,10 @@
     </div>
 
     <!-- Info Alert - without button -->
-    <div class="container fixed-bottom mb-3 invisible" id="infoAlert">
+    <div class="container col-12 col-md-8 col-lg-6 fixed-bottom mb-3 invisible" id="infoAlert">
         <div class="alert alert-info text-center" role="alert">
             <div class="col-12" id="infoAlertText"></div>
+            <button type="button" class="btn btn-warning mt-2" id="btnInfoClose">Schlie&szlig;en</button>
         </div>
     </div>
 
@@ -782,8 +868,7 @@
         <div class="alert alert-warning text-center" role="alert">
             <div class="col-12" id="warningAlertText">
             </div>
-            <button type="button" class="btn btn-primary mt-2"
-                    data-dismiss="alert">Schlie&szlig;en</button>
+            <button type="button" class="btn btn-primary mt-2" id="btnWarningClose">Schlie&szlig;en</button>
         </div>
     </div>
 
@@ -792,8 +877,7 @@
         <div class="alert alert-danger text-center" role="alert">
             <div class="col-12" id="dangerAlertText">
             </div>
-            <button type="button" class="btn btn-primary mt-2"
-                    data-dismiss="alert">Schlie&szlig;en</button>
+            <button type="button" class="btn btn-primary mt-2" id="btnDangerClose">Schlie&szlig;en</button>
         </div>
     </div>
 
