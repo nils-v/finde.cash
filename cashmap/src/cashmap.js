@@ -41,16 +41,16 @@ RELEASE_NOTES['0.8.3'] = '<p>Mit einem rechten Mausklick/Tap&Hold kannst Du in d
 var MAPBOX_TOKEN = 'pk.eyJ1IjoibmlscyIsImEiOiJjaW1wNzdrcGQwMDJ6d2FtNHk3YzJqZmRkIn0.MLGG4q0ptisudg2S85r0oA';
 var TFOREST_KEY = 'f75e52ff671445ffa6b2eaeff9f1143d';
 
-var CASHMAP_ATTR = '<span class="hideAttr">Developed by </span>' +
+var CASHMAP_ATTR = '<span class="hideAttr">Developed by&nbsp;</span>' +
 	'<a target="_blank" href="http://www.osm-maps.eu">osm-maps.eu</a>';
-var MAPBOX_ATTR = '<span class="hideAttr">Imagery © </span>' +
+var MAPBOX_ATTR = '<span class="hideAttr">Imagery ©&nbsp;</span>' +
 	'<a target="_blank" href="http://www.mapbox.com">Mapbox</a>';
-var TFOREST_ATTR = '<span class="hideAttr">Maps © </span>' +
+var TFOREST_ATTR = '<span class="hideAttr">Maps ©&nbsp;</span>' +
 	'<a target="_blank" href="http://www.thunderforest.com">Thunderforest</a>';
 var OSM_ATTR = '<a target="_blank" href="http://openstreetmap.org">OSM</a>' +
 	'<span class="hideAttr">Mitwirkende (' +
 	'<a target="_blank" href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>)</span>';
-var ICON_ATTR = '<span class="hideAttr">Icons by </span>' +
+var ICON_ATTR = '<span class="hideAttr">Icons by&nbsp;</span>' +
 	'<a  target="_blank" href="http://www.flaticon.com/authors/dave-gandy" title="Dave Gandy">flaticon</a>';
 
 var CLOSE_BUTTON = '<button type="button" class="close" aria-label="Schlie&szlig;en">' +
@@ -101,7 +101,6 @@ var STANDARD_COLOR = {
 };
 
 var MIN_ZOOM = 13;        // minimal zoom for data load to avoid cluttering
-var TRAVEL_TYPE = 'walk'; // bike
 
 /**
  *  Globale Variablen
@@ -204,7 +203,8 @@ var newMarkerLayer = L.geoJSON(null);
 var highlightLayer = L.geoJSON(null).addTo(cashMap);
 var highlightStyle = {
 	stroke: false,
-	fillColor: "#F3969A",
+	//fillColor: "#F3969A",
+	fillColor: "#0B5898",
 	fillOpacity: 0.8,
 	radius: 20
 };
@@ -262,7 +262,7 @@ L.control.locate({
 	keepCurrentZoomLevel: true,
 	circleStyle: {
 		weight: 1,
-		clickable: false
+		clickable: true
 	},
 	icon: "fa fa-location-arrow",
 	iconLoading: 'fa fa-spinner',
@@ -313,7 +313,7 @@ var btnShowTravelTime = L.easyButton({
 			showTravelTime(true);
 			button.state('hide-time');
 		},
-		title: 'Zu Fuss in 10 min...',
+		title: 'Zu Fu&szlig; in 10 min...',
 		icon: 'fa-clock-o'
 	},	{                 		// specify different icons and responses for your button
 		stateName: 'hide-time',
@@ -526,7 +526,15 @@ cashMap.on('locationfound', function(e) {
 		myLocation = e.latlng;
 
 	} else {
-		showWarning('Dein Standort konnte nur ungenau ermittelt werden.');
+		var ErrText = 'Dein Standort konnte nur ungenau ermittelt werden.';
+		if (cashMap.getZoom() < MIN_ZOOM) {
+			ErrText += '<br />Zoome weiter hinein, um Daten anzuzeigen!';
+		}
+
+		crosshair.addTo(cashMap);
+		showWarning(ErrText);
+		cashMap.fire('moveend'); // load data
+		myLocation = null;
 	}
 
 });
@@ -721,11 +729,11 @@ function syncSidebar() {
 
 					if (osmTags.amenity === 'bank') {
 						tableRow += osmTags.hasOwnProperty('name') ?
-							(osmTags.name.length > 21 ? osmTags.name.substr(0,19) + '...' : osmTags.name) :
+							(osmTags.name.length > 18 ? osmTags.name.substr(0,16) + '...' : osmTags.name) :
 							'&lt;Kein Name&gt;';
 					} else {
 						tableRow += osmTags.hasOwnProperty('operator') ?
-							(osmTags.operator.length > 21 ? osmTags.operator.substr(0,19) + '...' : osmTags.operator) :
+							(osmTags.operator.length > 18 ? osmTags.operator.substr(0,16) + '...' : osmTags.operator) :
 							'&lt;Kein Operator&gt;';
 					}
 					tableRow += '</td>' + '<td class="featureDistance">' +
@@ -877,7 +885,7 @@ $('#newFeatureModal').on('show.bs.modal', function (e) {
 $('#operatorSelect').change(function() {
 	var network = '';
 	var operator = $('#operatorSelect option:selected').text();
-	if (operator.search(/sparkasse|landesbank\ berlin|bw\ bank|lbbw/i) > -1) {
+	if (operator.search(/sparkasse|landesbank\ berlin|bw\ bank|bw-bank|lbbw/i) > -1) {
 		network = 'Sparkassen-Finanzverbund';
 	} else if (operator.search(/Volksbank|Raiffeisen|PSD|GLS/i) > -1) {
 		network = 'BankCard-Netz (VR-Banken)';
@@ -995,14 +1003,30 @@ function toggleChevron(e) {
  * #btnRoute - show route
  *
  */
-$('#btnRoute').click ( function (e) {
+
+$('#btnRouteZuFuss').click ( function (e) {
 
 	// get  marker from saved DOM layer object
 	var routeTargetMarker = $('#layerObj').val()[0];
-	routeToFeature(routeTargetMarker);
+	routeToFeature(routeTargetMarker, 'walk');
 
 });
+$('#btnRouteRad').click ( function (e) {
 
+	// get  marker from saved DOM layer object
+	var routeTargetMarker = $('#layerObj').val()[0];
+	routeToFeature(routeTargetMarker, 'bike');
+
+});
+$('#btnRouteOEPNV').click ( function (e) {
+
+	// get  marker from saved DOM layer object
+	var routeTargetMarker = $('#layerObj').val()[0];
+	if (!routeToFeature(routeTargetMarker, 'transit')) {
+		 showInfo('Kein &Ouml;PNV Routing verf&uuml;gbar.')
+	}
+
+});
 
 /**
  * button click handler
@@ -1028,6 +1052,15 @@ $('#btnAskForDelete').click ( function (event) {
 	}
 
 });
+
+/**
+ * hack to activate first tab of help Modal
+ */
+$('#helpModalTabs a.nav-link')
+	.filter(function() {return $(this).css('display') === 'block'; })
+	.first()
+	.tab('show');
+
 
 /**
  *
@@ -1532,10 +1565,25 @@ function formatTime (timeSec) {
 	if (hour !== 0) {
 		return (hour + ':' + min + ' h');
 	} else {
-		return (min + ' min');
+		if (min === 0) {
+			return ('<1 min');
+		} else {
+			return (min + ' min');
+		}
 	}
 }
 
+$('#btnInfoClose').click (function () {
+	hideInfo();
+});
+
+$('#btnWarningClose').click (function () {
+	hideWarning();
+});
+
+$('#btnDangerClose').click (function () {
+	hideError();
+});
 
 function showInfo(text) {
 	$('#infoAlertText').html(text);
@@ -1555,7 +1603,6 @@ function hideWarning() {
 	$('#warningAlert').addClass('invisible');
 }
 
-
 function showError(text) {
 	$('#dangerAlertText').html(text);
 	$('#dangerAlert').removeClass('invisible');
@@ -1573,6 +1620,7 @@ function initRoutingAreas () {
 	$.getJSON('https://developers.route360.net/api/endpoint')
 	.done( function (data) {
 
+		// iterate routing regions
 		data.forEach(function (area) {
 			var routingArea = {};
 			routingArea.name 		= area.name;
@@ -1580,43 +1628,40 @@ function initRoutingAreas () {
 			routingArea.layer 		= L.geoJSON(area.region);
 			routingArea.hasTransit 	= area.hasTransit;
 
+			// build area of routing regions
 			routingRegions.push(routingArea);
 
 		});
 		routingAvailable = true;
 	})
-	.fail( function (data) {
-		srvLog('route360 not available');
+	.fail( function(jqXHR, statusText, errorThrown) {
+
+		srvLog('route360 not available: ' + errorThrown + '/' + statusText);
 		routingAvailable = false;
+
 	});
 }
 
 /**
+ *
+ * function readGermanyBorders
+ *
+ * reads the German border polygon as geoJSON from file
  *
  */
 function readGermanyBorders () {
 
 	$.getJSON('data/de.geojson')
 	.done( function (data) {
-		borderLayer = L.geoJSON(data, {
-			/*
-			style: function (feature) {
-				return {
-					weight: 1,
-					color: 'blue'
-				};
-			}
-			*/
-		});
-//		}).addTo(cashMap);
+		borderLayer = L.geoJSON(data, {	});
 	})
-	.fail( function (data) {
-		srvLog('border load failed');
+	.fail( function (jqXHR, textStatus, errorThrown) {
+		srvLog('de border polygon - load failed'  + errorThrown +'/' + textStatus);
 	});
 }
 
 /**
- * getRoutingArea - returns the endpoint for route360 routing service url
+ * getRoutingArea - returns the endpoint + hasTransit for route360 routing service url
  *
  * - check if both endpoints are in same region
  * - if not returns null
@@ -1626,13 +1671,17 @@ function readGermanyBorders () {
  *
  */
 function getRoutingArea (src, tgt) {
-	var srcEndpoint = null, tgtEndpoint = null, results = [];
+	var srcEndpoint = null;
+	var tgtEndpoint = null;
+	var results = [];
+	var hasTransit = false;
 
 	if (routingAvailable) {
 		routingRegions.forEach(function (region) {
 			results = leafletPip.pointInLayer(src.getLatLng(), region.layer, true);
 			if (results.length > 0) {
 				srcEndpoint = region.endpoint;
+				hasTransit = region.hasTransit;
 			}
 		});
 		// TODO check for polygon
@@ -1644,11 +1693,19 @@ function getRoutingArea (src, tgt) {
 		});
 
 		if (srcEndpoint === tgtEndpoint) {
-			return (srcEndpoint);
+			routingAvailable = true;
+			return (
+				{
+					endpoint: srcEndpoint,
+					transit: hasTransit
+				}
+			);
 		} else {
 			routingAvailable = false;
 			return null;
 		}
+	} else {
+		return null;
 	}
 }
 
@@ -1795,6 +1852,14 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 			var featureTitle = '';
 			var osmTags = feature.properties.tags;
 
+			if (osmTags.hasOwnProperty('name') && osmTags.name.search(/gls/i) > -1) {
+				mColor = '#6A9140';
+			} else {
+				if (osmTags.hasOwnProperty('operator') && osmTags.operator.search(/gls/i) > -1) {
+					mColor = '#6A9140';
+				}
+			}
+
 			if (osmTags.amenity === 'bank') {
 				featureTitle = osmTags.hasOwnProperty('name') ? osmTags.name : 'Kein Name erfasst';
 			} else {
@@ -1820,6 +1885,7 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 				}
 			}
 
+			// return svg marker with color
 			return L.marker(latlng, {
 					icon: L.VectorMarkers.icon(
 						{
@@ -1924,10 +1990,11 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 								}
 							},
 							{ 'locale': 'de' });
+						//console.log(oh.getState());
+						//console.log(oh.getWarnings());
 						ohValid = (oh.getWarnings().length === 0);
-
 					} catch (err) {
-						srvLog('onEachFeature/opening_hours err: ' + feature.id + '/' + err)
+						console.log('onEachFeature/opening_hours err: ' + feature.id + '/' + err)
 					}
 
 					var ohSimple = new SimpleOpeningHours(feature.properties.tags.opening_hours);
@@ -1963,9 +2030,10 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 
 					openingTable = '<p>Keine &Ouml;ffnungszeit erfasst.</p>';
 					/*
-					openingTable += '<button type="button" id="btnEditOpeningHours" ' +
-						'class="btn bt-sm btn-outline-primary pull-right disabled">Jetzt erfassen</button>';
-					*/
+					    <button type="button" id="btnEditOpeningHours"
+                        class="btn btn-outline-info float-left">Jetzt erfassen</button>
+					 */
+
 				}
 
 				// Modal Tab OSM Info füllen
@@ -1983,11 +2051,16 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 
 					// set texts in modal elements
 					$('#feature-title').html(featureTitle);
-					$('#feature-info').html(featureInfo);
-					
-					$('#osmTags').html(osmTagTable);
+					$('#infoText').html(featureInfo);
+
+					// table of opning hours
+					$('#openingTable').html(openingTable);
+					$('#btnEditOpeningHours').addClass('disabled');
+
+					// table of osm tags
+					$('#osmTagsTable').html(osmTagTable);
+					// missing osm tags
 					$('#osmInfoMissing').html(osmInfoMissing);
-					$('#opening').html(openingTable);
 
 					// hack to activate first visible tab
 					$('#featureModalTabs a.nav-link')
@@ -2094,13 +2167,14 @@ function showTravelTime (show) {
  * set src marker to last geolocation or map center
  *
  * @param routeTargetMarker - target marker object
- *
+ * @param travelType {string} - travel type
  */
-function routeToFeature (routeTargetMarker) {
+function routeToFeature (routeTargetMarker, travelType) {
 	var srcLatLon = null;
-	if (cashMap.hasLayer(routeSrcMarker)) {
-		cashMap.removeLayer(routeSrcMarker);
-	}
+	var OPNVRouting = false;
+
+	if (cashMap.hasLayer(routeSrcMarker)) { cashMap.removeLayer(routeSrcMarker); }
+
 	// if geolocated set blue circle marker as source
 	if (myLocation && cashMap.getBounds().contains(myLocation)) {
 
@@ -2125,20 +2199,24 @@ function routeToFeature (routeTargetMarker) {
 			}),
 			draggable: true
 		}
-	)
-	.bindPopup('Ziehe den Marker ggf. zur gew&uuml;nschten Start-Position.')
+	);
+	// check if routing type is available
+	if (travelType === 'transit' && !getRoutingArea(routeSrcMarker, routeTargetMarker).transit) {
+		routeSrcMarker = null;
+		return false;
+	}
+
+	routeSrcMarker.bindPopup('Ziehe den Marker ggf. zur gew&uuml;nschten Start-Position.')
 	.addTo(cashMap);
 
 	// delete blue circle marker on dragstart
 	routeSrcMarker.on('dragstart', function (event) {
-		if (cashMap.hasLayer(myLocationMarker)) {
-			cashMap.removeLayer(myLocationMarker)
-		}
+		if (cashMap.hasLayer(myLocationMarker)) { cashMap.removeLayer(myLocationMarker) }
 	});
 
 	// after drag end of source marker, show new route
 	routeSrcMarker.on('dragend', function (event) {
-		showRoute(routeSrcMarker, routeTargetMarker)
+		showRoute(routeSrcMarker, routeTargetMarker, travelType)
 	});
 
 	// do not propagate context menu event to map
@@ -2146,7 +2224,9 @@ function routeToFeature (routeTargetMarker) {
 		return false;
 	});
 
-	showRoute(routeSrcMarker, routeTargetMarker);
+	showRoute(routeSrcMarker, routeTargetMarker, travelType);
+
+	return true;
 }
 
 /**
@@ -2155,19 +2235,21 @@ function routeToFeature (routeTargetMarker) {
  *
  * @param src {L.Marker} - source marker
  * @param tgt {L.Marker} - target marker
+ * @param travelType {string} - travel type
+ *
  */
-function showRoute (src, tgt) {
+function showRoute (src, tgt, travelType) {
 
 	var routeOptions = r360.travelOptions();
-
 	routeOptions.setServiceKey('1TJD1WJERN3ORD1DM2PVL2M');
-	endpoint = getRoutingArea(src, tgt);
+
+	endpoint = getRoutingArea(src, tgt).endpoint;
 
 	if (endpoint) {
 
 		routeOptions.setServiceUrl('https://service.route360.net/' + endpoint + '/');
-		routeOptions.setTravelType(TRAVEL_TYPE);
-		routeOptions.setMaxEdgeWeight(3600);
+		routeOptions.setTravelType(travelType);
+		routeOptions.setMaxEdgeWeight(1800);
 		routeOptions.setRecommendations(-1); 	// no alternative route recommendations
 
 		// delete existing route(s)
@@ -2180,35 +2262,78 @@ function showRoute (src, tgt) {
 		r360.RouteService.getRoutes(routeOptions,
 
 			function (routes) {
+
 				r360.LeafletUtil.fadeIn(routeLayer, routes[0], 1000, 'travelDistance', {}, showRouteInfo);
 
-				// create Bootstrap 4 card with text and button as popup content
-				var routePopupContent = L.DomUtil.create('div', 'card border-0');
-				var cardBlock = L.DomUtil.create('div', 'card-block p-0 border-0', routePopupContent);
-				var cardText = L.DomUtil.create('div', 'card-text', cardBlock);
-				cardText.innerHTML = 'Die Route ist ' +
-					formatDistance(routes[0].getDistance() * 1000) + ' lang und dauert ' +
-					(routes[0].routeSegments[0].type === 'WALK' ? ' zu Fuss ' : ' mit dem Fahrrad') + ' ca. ' +
-					formatTime(routes[0].getTravelTime()) + '.';
+				// only two endpoints -> only routes [0]
+				var popupRouteDetails = '<div class="routeInfoTable">';
+				routes[0].routeSegments.forEach(function (segment) {
 
-				var btnDelete = L.DomUtil.create('button', 'btn btn-outline-secondary btnDelRoute mt-2 pull-right', cardBlock);
-				btnDelete.setAttribute('type', 'button');
-				btnDelete.innerHTML = 'Ausblenden';
+					popupRouteDetails += '<div class="routeInfoRow">';
+					switch (segment.type) {
+						case 'WALK':
+							popupRouteDetails += '<div class="routeInfoCell"><img width="20" height="25" src="img/man.svg"></div>' +
+								'<div class="routeInfoCell">' + formatDistance(segment.distance * 1000) + ' / ' +
+								formatTime(segment.travelTime) + '</div>';
+							break;
+						case 'BIKE':
+							popupRouteDetails += '<div class="routeInfoCell"><img width="25" height="25" src="img/bicycle.svg"></div>' +
+								'<div class="routeInfoCell">' + formatDistance(segment.distance * 1000) + ' / ' +
+								formatTime(segment.travelTime) + '</div>';
+							break;
+						case 'TRANSFER':
+							break;
+						case 'TRANSIT':
+							srvLog('routeType: ' + segment.getRouteType() + ' /Linie: ' + segment.routeShortName);
 
-				routeLayer.setPopupContent(routePopupContent);
+							popupRouteDetails += '<div class="routeInfoCell">' + getRouteTypeIcon(segment.routeType) + '</div>' +
+								'<div class="routeInfoCell">Linie ' + segment.routeShortName  +
+								((segment.tripHeadSign) ? ' ("' + segment.tripHeadSign + '")' : '')  +
+								'</div>' +
+								'</div>' +
+								'<div class="routeInfoRow"><div class="routeInfoCell"></div>' +
+								'<div class="routeInfoCell">' + segment.startname + '&nbsp;&rarr;<br />' + segment.endname + '</div>';
+							break;
+					}
+					popupRouteDetails += '</div>';
+				});
+				popupRouteDetails += '</div>';
+				routeLayer.setPopupContent(popupRouteDetails);
 
+				/*
+				var center = turf.center(routeLayer.toGeoJSON());
+				var routeLayerCenter = [center.geometry.coordinates[1], center.geometry.coordinates[0]];
+				console.log(routeLayerCenter);
+				var centerMarker = L.marker(routeLayerCenter).addTo(cashMap);
+				*/
+
+				routeLayer.on('popupclose', function () {
+					routeLayer.clearLayers();
+					if (cashMap.hasLayer(routeSrcMarker)) {
+						cashMap.removeLayer(routeSrcMarker);
+					}
+					if (cashMap.hasLayer(myLocationMarker)) {
+						cashMap.removeLayer(myLocationMarker)
+					}
+				});
 			},
 			function (errcode, errmsg) {
 				srvLog('routing error: ' + errcode + '/' + errmsg);
 				console.log('routing error: ' + errcode + '/' + errmsg);
 
-				// TODO translate error msg
-				showError('Fehler beim Routing: <br />' + errmsg);
+				// max routing time 1800 sec -> translate message
+				if (errcode === 'no-route-found' && errmsg.search(/1800/i) > -1) {
+					showError('Routen länger als 30 min nicht möglich');
+				} else {
+					// TODO translate error msg
+					showError('Fehler beim Routing: <br />' + errmsg);
+				}
 
 				if (cashMap.hasLayer(routeSrcMarker)) {
 					cashMap.removeLayer(routeSrcMarker);
 				}
 			}
+
 		);
 	}
 }
@@ -2221,29 +2346,6 @@ function showRoute (src, tgt) {
 function showRouteInfo(event) {
 
 }
-
-/**
- *
- * map click handler - handles only event on popup Delete button bubbeled to map
- *
- * - delete route layer
- * - close popup
- * - delete source marker
- * - delete blue circle marker if present
- *
- */
-$('#cashMap').on('click', '.btnDelRoute', function() {
-
-	routeLayer.clearLayers();
-	routeLayer.closePopup();
-	if (cashMap.hasLayer(routeSrcMarker)) {
-		cashMap.removeLayer(routeSrcMarker);
-	}
-	if (cashMap.hasLayer(myLocationMarker)) {
-		cashMap.removeLayer(myLocationMarker)
-	}
-
-});
 
 
 /**
@@ -2304,7 +2406,113 @@ function editNewMarker (markerLatLon) {
 	}
 }
 
+/**
+ *
+ * @param {} routeType - RoutenTyp nach GTFS Standard
+ *
+ * used by route360.net:
+ * 0, 1, 2, 3, 4, 6, 7, 100, 106, 107, 109, 400, 401, 402, 700, 702, 704, 713, 714, 715, 800, 900, 1000, 1100, 1400
+ *
+ * @returns {HTML-String} - img Tag with size and svg
+ */
+function getRouteTypeIcon (routeType) {
+	switch (routeType) {
+		// 0 - Tram, Streetcar, Light rail. Any light rail or street level system within a metropolitan area.
+		// 900	Tram Service
+		case 0:
+		case 900:
+			return ('<img width="20" height="22" src="img/tram.svg">');
+			break;
 
+		// 1 - Subway, Metro. Any underground rail system within a metropolitan area.
+		case 1:
+			return ('<img width="15" height="25" src="img/subway.svg">');
+			break;
+
+		// 2 - Rail. Used for intercity or long-distance travel.
+		// 100	Railway Service
+		// 106	Regional Rail Service
+		// 107	Tourist Railway Service
+		// 109	Suburban Railway
+
+		case 2:
+		case 100:
+		case 106:
+		case 107:
+		case 109:
+			return ('<img width="20" height="22" src="img/rail.svg">');
+			break;
+
+		// 3 - Bus. Used for short- and long-distance bus routes.
+		// 700 - Bus service
+		// 702	Express Bus Service
+		// 704	Local Bus Service
+		// 713	School and Public Service Bus
+		// 714	Rail Replacement Bus Service
+		// 715	Demand and Response Bus Service
+		case 3:
+		case 700:
+		case 702:
+		case 704:
+		case 713:
+		case 714:
+		case 715:
+			return ('<img width="20" height="25" src="img/bus.svg">');
+			break;
+
+		//  4 - Ferry. Used for short- and long-distance boat service.
+		// 1000	Water Transport Service
+		case 4:
+		case 1000:
+			return ('<img width="25" height="25" src="img/ferry.svg">');
+			break;
+
+		//  6 - Gondola, Suspended cable car. Typically used for aerial cable cars where the car is suspended from the cable
+		case 6:
+			return ('<img width="25" height="25" src="img/cablecar.svg">');
+			break;
+
+		//  7 - Funicular. Any rail system designed for steep inclines
+		// 1400	Funicular Service
+		case 7:
+		case 1400:
+			return ('<img width="25" height="25" src="img/funicular.svg">');
+			break;
+
+		// S-Bahn Berlin
+		case 109:
+			return ('<img width="15" height="15" src="img/s-berlin.svg">');
+			break;
+
+		// 400	U-Bahn "U" (blau)
+		case 400:
+			return ('<img width="15" height="15" src="img/u-berlin.svg">');
+			break;
+
+		// Urban Railway Services
+		// 401	Metro Service
+		// 402	Underground Service
+		case 401:
+		case 402:
+			return ('<img width="20" height="25" src="img/subway.svg">');
+			break;
+
+		// 800	Trolleybus Service
+		case 800:
+			return ('<img width="20" height="25" src="img/trolley.svg">');
+			break;
+
+		// 1100	Air Service
+		case 1100:
+			return ('<img width="20" height="25" src="img/plane.svg">');
+			break;
+
+		default:
+			return ('<img width="20" height="22" src="img/rail.svg">');
+			break;
+
+	}
+}
 /**
  * clearAtmLayersAndRoutes - remove all overlay layers from map and layer control
  *
@@ -2326,9 +2534,7 @@ function clearAtmLayersAndRoutes (map) {
 
 		// clear routes and start marker
 		routeLayer.clearLayers();
-		if (cashMap.hasLayer(routeSrcMarker)) {
-			cashMap.removeLayer(routeSrcMarker);
-		}
+		if (cashMap.hasLayer(routeSrcMarker)) {	cashMap.removeLayer(routeSrcMarker); }
 	})
 }
 
@@ -2365,8 +2571,8 @@ function buildOsmTagsTable (feature) {
  *
  * atmInNetwork - check if feature belongs to atm pool <name>
  *
- * @param {string} name - name of atm pool ("sparkasse"|"vrbanken"|"cashgroup"|"cashpool"|'keiner')
  * @param {L.feature} feature - map feature
+ * @param {string} network - name of atm pool ("sparkasse"|"vrbanken"|"cashgroup"|"cashpool"|'keiner')
  *
  * @returns {boolean}
  */
@@ -2413,7 +2619,7 @@ function getAtmNetwork (feature) {
 	} else {
 		// 2nd check: [operator]
 		if (operator) {
-			if (operator.search(/sparkasse|landesbank\ berlin|bw\ bank|lbbw/i) > -1) {
+			if (operator.search(/sparkasse|landesbank\ berlin|bw\ bank|bw-bank|lbbw/i) > -1) {
 				return "sparkassen";
 			}
 			if (operator.search(/Volksbank|Raiffeisen|PSD|GLS/i) > -1) {
@@ -2430,7 +2636,7 @@ function getAtmNetwork (feature) {
 		} else {
 			// 3rd check: [name]
 			if (name) {
-				if (name.search(/sparkasse|landesbank\ berlin|bw\ bank|lbbw/i) > -1) {
+				if (name.search(/sparkasse|landesbank\ berlin|bw\ bank|bw-bank|lbbw/i) > -1) {
 					return "sparkassen";
 				}
 				if (name.search(/Volksbank|Raiffeisen|PSD|GLS/i) > -1) {
@@ -2471,12 +2677,7 @@ function newFeatureOnMap (e) {
  * do not propagate contextmenu event to map
  *
  * @param markerLatLon <L.LatLon> - coordinates of marker
- * @param showHint <boolean> - open pop with usage hint on startup
- */
-/**
  *
- * @param markerLatLon
-
  */
 function createNewMarker (markerLatLon) {
 
@@ -2500,16 +2701,16 @@ function createNewMarker (markerLatLon) {
 	newMarkerLayer.openPopup();
 
 	/**
-	 * bind event handler for dragend
-	 * - show popup again
+	 * event handler for dragend
+	 * - show help text popup
 	 */
 	newMarkerLayer.on('dragend', function (e) {
 		newMarkerLayer.openPopup();
 	});
 
 	/**
-	 * bind event handler for left click
-	 * - close popup,
+	 * event handler for left click
+	 * - close popup
 	 * - show edit form
  	 */
 	newMarkerLayer.on('click', function (e) {
@@ -2518,7 +2719,7 @@ function createNewMarker (markerLatLon) {
 	});
 
 	/**
-	 * bind event handler for contextmenu
+	 * event handler for contextmenu
 	 * - do not propagate context menu event to map
  	 */
 	newMarkerLayer.on('contextmenu', function (e) {
@@ -2573,9 +2774,9 @@ function showAddress (e) {
  *  - add comment from feature form
  *  - API call to PUT changeset
  *
- * @param changeset comment
- * @param featureId
- * @param callback - function to be called to upload node (delete/upload)
+ * @param {string} comment
+ * @param {string} featureId (<node|way>/<osm-id>)
+ * @param {function} callback - function to be called to upload node (delete/upload)
  */
 function createChangeset (comment, featureId, callback) {
 
@@ -2762,7 +2963,7 @@ function uploadDeletion (changesetId, featureId) {
 
 					} else {
 						srvLog('node deleted.');
-						showInfo('Du hast die Daten aus OSM gelöscht.');
+						showInfo('Du hast das Objekt aus OSM gelöscht.');
 					}
 				});
 			}
