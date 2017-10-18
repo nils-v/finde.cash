@@ -1,0 +1,33 @@
+// Branding for GLS-Bank
+// 15.10.2017
+
+// Bootswatch
+/****************
+// Font
+// GLS Font
+$web-font-path: "https://fonts.googleapis.com/css?family=Open+Sans" !default;
+$font-family-sans-serif: "Open+Sans", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+// Colors
+// Reassign color vars to semantic color scheme
+$brand-primary:             #C9DB2F;
+$brand-secondary:           #0B5898; // rgb(253,150,154)
+//$brand-success:             #56CC9D;
+$brand-info:                #6A9140;
+//$brand-warning:             #FFCE67;
+//$brand-danger:              #FF7851;
+//$brand-inverse:             $gray-dark !default;
+
+// Navbar
+// Brand Logo
+$logo_brand_width:    80px;
+$logo_brand_height:   35px;
+
+// Brand Name text color
+$brand-color:         $brand-secondary;
+
+// Dropdowns
+//
+// Dropdown menu container and contents.
+$dropdown-link-hover-bg:       #6A9140;
+********/
