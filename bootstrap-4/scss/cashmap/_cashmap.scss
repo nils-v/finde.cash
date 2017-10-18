@@ -78,7 +78,7 @@ body {
 
 // hover color
 .table-hover > tbody > tr:hover > td {
-  background-color: #78C2AD;
+  background-color: $brand-primary;
   color: white;
 }
 
@@ -102,10 +102,9 @@ button.sort {
 /**************** Easy buttons *************************/
 
 // enlarge fa icons
-.fa.fa-chevron-right, .fa.fa-refresh {
-  font-size: 18px;
+.fa.fa-chevron-right {
+  font-size: 16px;
 }
-
 
 // hide if disabled on all screens
 .easy-button-button.disabled {
@@ -115,20 +114,29 @@ button.sort {
 .easy-button-button.enabled {
   display: block;
 }
+
 /**************** Diverse ******************************/
-// shorten attribution strings
+// shorten attribution strings on mobile devices
 .hideAttr {
   display: none;
 }
 
-// logo size and alignment
-.logo {
+// header logo size and alignment
+.logoBrand {
   vertical-align: top;
-  width: 35px;
-  height: 35px;
+  width: $logo_brand_width;
+  height: $logo_brand_height;
 }
+
 .logoText {
   font-size: 1.5rem;
+  color: $brand-color;
+}
+
+// Logo in feature form
+.featureLogo {
+  border-color: black;
+  border-width: 2px;
 }
 
 // placeholder in form fields
@@ -146,6 +154,21 @@ button.sort {
   font-weight: bold;
   line-height: 1.5rem;
 }
+
+// popup route info
+div.routeInfoTable {
+  display: table !important;
+  font-size: .9rem;
+  line-height: 1.5rem;
+}
+div.routeInfoRow {
+  display: table-row !important;
+}
+div.routeInfoCell {
+  display: table-cell !important;
+  padding-left: .5rem;
+}
+
 /**************** Alert Boxes *************************/
 // show alert boxes on top
 .alert {
@@ -180,7 +203,9 @@ option[value=""][disabled] {
 /**************** Tabs ********************************/
 // shrink to fit text in tabs
 a.nav-link {
+
   padding: .5em .5em;
+
 }
 
 /**************** Leaflet *****************************/
@@ -243,6 +268,7 @@ img.leaflet-contextmenu-icon {
   -webkit-animation: scroll-up 15s linear infinite;
   animation: scroll-up 15s linear infinite;
 }
+
 /* Move it (define the animation) */
 @-moz-keyframes scroll-up {
   0%   { -moz-transform: translateY(50%); }
@@ -264,7 +290,6 @@ img.leaflet-contextmenu-icon {
     transform: translateY(-100%);
   }
 }
-
 
 
 // M E D I A    Q U E R I E S   =============================================================
@@ -293,6 +318,14 @@ img.leaflet-contextmenu-icon {
  */
 @include media-breakpoint-up(sm) {
 
+  // popup not wider than screen
+  .leaflet-popup-content-wrapper,
+  .leaflet-popup-content {
+
+    max-width: 550px;
+
+  }
+
   // larger popup font
   .leaflet-popup-content {
 
@@ -310,17 +343,23 @@ img.leaflet-contextmenu-icon {
 
   // adjust context menu icon vertically
   img.leaflet-contextmenu-icon {
+
     margin: .3rem .5rem 0 0
+
   }
 
   // smaller header line
   .modal-title {
+
     font-weight: bold;
+
   }
 
-  // shrink to fit text in tabs
+  // shrink padding to fit text in tab header
   a.nav-link {
+
     padding: .5em 1em;
+
   }
 
   // round buttons
@@ -334,22 +373,43 @@ img.leaflet-contextmenu-icon {
 */
 @include media-breakpoint-up(md) {
 
+  // show long attributions
+  .hideAttr {
+
+    display: inline-block;
+
+  }
+
+  // smaller popup font
+  .leaflet-popup-content {
+
+    font-size: .9rem;
+
+  }
+
+  // display sidebar
   #sideBar {
+
     display: block;
+
   }
 
     // larger header line
   .modal-title {
+
     font-size: 1.5rem;
     font-weight: bold;
+
   }
 
   // round buttons
   $btn-border-radius: .5rem;
 
   #textCredits {
+
     font-size: 1.2rem;
     line-height: 1.8rem;
+
   }
 
   .companyName {
@@ -357,6 +417,7 @@ img.leaflet-contextmenu-icon {
     font-weight: bolder;
     line-height: 2rem;
   }
+
 }
 
 
