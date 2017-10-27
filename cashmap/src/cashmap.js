@@ -53,9 +53,6 @@ var OSM_ATTR = '<a target="_blank" href="http://openstreetmap.org">OSM</a>' +
 var ICON_ATTR = '<span class="hideAttr">Icons by&nbsp;</span>' +
 	'<a  target="_blank" href="http://www.flaticon.com/authors/dave-gandy" title="Dave Gandy">flaticon</a>';
 
-var CLOSE_BUTTON = '<button type="button" class="close" aria-label="Schlie&szlig;en">' +
-	'<span aria-hidden="true">&times;</span></button>';
-
 
 var WOCHENTAG_NAME = {
 	'su':'Sonntag',
@@ -84,13 +81,6 @@ var NETWORK_NAME = {
 	'keiner'	: 'kein Verbund'
 };
 
-var LINE_COLOR = {
-	'sparkassen': '#FF8E7F',
-	'vrbanken'	: '#BBF970',
-	'cashpool'	: '#37AADD',
-	'cashgroup'	: '#FFCB92',
-	'keiner'	: '#78C2AD'
-};
 
 var STANDARD_COLOR = {
 	'sparkassen': '#FF0000',
@@ -203,8 +193,8 @@ var newMarkerLayer = L.geoJSON(null);
 var highlightLayer = L.geoJSON(null).addTo(cashMap);
 var highlightStyle = {
 	stroke: false,
-	//fillColor: "#F3969A",
-	fillColor: "#0B5898",
+	fillColor: "#F3969A",
+	//fillColor: "#0B5898",
 	fillOpacity: 0.8,
 	radius: 20
 };
@@ -1000,33 +990,51 @@ function toggleChevron(e) {
 /**
  * button click handler
  *
- * #btnRoute - show route
+ * #btnRouteZuFuss - show route "Zu Fuß"
+ * #btnRouteRad - show route "Mit dem Rad"
+ * #btnRouteOEPNV - show route "Mit ÖPNV"
+ *
+ * - check for polygon, if yes, take the center (turf.centroid()) as tgt
  *
  */
 
 $('#btnRouteZuFuss').click ( function (e) {
 
 	// get  marker from saved DOM layer object
-	var routeTargetMarker = $('#layerObj').val()[0];
-	routeToFeature(routeTargetMarker, 'walk');
+	var routeTargetLayer = $('#layerObj').val()[0];
+
+	// calc center (when polygon) and calc route to it
+	routeToFeature(getTargetMarker(routeTargetLayer), 'walk');
 
 });
+
 $('#btnRouteRad').click ( function (e) {
 
 	// get  marker from saved DOM layer object
-	var routeTargetMarker = $('#layerObj').val()[0];
-	routeToFeature(routeTargetMarker, 'bike');
+	var routeTargetLayer = $('#layerObj').val()[0];
+
+	// calc center (when polygon) and calc route to it
+	routeToFeature(getTargetMarker(routeTargetLayer), 'bike');
 
 });
+
 $('#btnRouteOEPNV').click ( function (e) {
 
 	// get  marker from saved DOM layer object
-	var routeTargetMarker = $('#layerObj').val()[0];
-	if (!routeToFeature(routeTargetMarker, 'transit')) {
+	var routeTargetLayer = $('#layerObj').val()[0];
+
+	// calc center (when polygon) and calc route to it
+	if (!routeToFeature(getTargetMarker(routeTargetLayer), 'transit')) {
 		 showInfo('Kein &Ouml;PNV Routing verf&uuml;gbar.')
 	}
 
 });
+
+
+$('#btnEditOpeningHours').click ( function (event) {
+	console.log('clicked for new oh');
+});
+
 
 /**
  * button click handler
@@ -1052,6 +1060,7 @@ $('#btnAskForDelete').click ( function (event) {
 	}
 
 });
+
 
 /**
  * hack to activate first tab of help Modal
@@ -1671,10 +1680,11 @@ function readGermanyBorders () {
  *
  */
 function getRoutingArea (src, tgt) {
-	var srcEndpoint = null;
-	var tgtEndpoint = null;
-	var results = [];
-	var hasTransit = false;
+	var srcEndpoint 	= null;
+	var tgtEndpoint 	= null;
+	var results 		= [];
+	var hasTransit 		= false;
+	var featureCenter 	= null;
 
 	if (routingAvailable) {
 		routingRegions.forEach(function (region) {
@@ -1684,7 +1694,7 @@ function getRoutingArea (src, tgt) {
 				hasTransit = region.hasTransit;
 			}
 		});
-		// TODO check for polygon
+
 		routingRegions.forEach(function (region) {
 			results = leafletPip.pointInLayer(tgt.getLatLng(), region.layer, true);
 			if (results.length > 0) {
@@ -2007,7 +2017,6 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 							'<p class="text-danger font-weight-bold">Jetzt geschlossen.</p>');
 
 						// create simplified table of opening_hours
-						// TODO i18n of WOCHENTAG_NAME
 						openingTable = '<table class="table table-striped table-bordered table-responsive">';
 						Object.keys(ohSimplTable).forEach(function (dayOfWeek) {
 							if (ohSimplTable[dayOfWeek][0]) {
@@ -2023,17 +2032,18 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 						openingTable += '<p>Erfasste &Ouml;ffnungszeit ung&uuml;ltig oder nicht tabellarisch darstellbar.</p>';
 					}
 				} else {
-					featureInfo += '<p><strong>Keine &Ouml;ffnungszeit erfasst.</strong></p>';
-					osmInfoMissing += '<p><i>&Ouml;ffnungszeiten (Attribut [' +
+					featureInfo 	+= '<p><strong>Keine &Ouml;ffnungszeit erfasst.</strong></p>';
+					osmInfoMissing 	+= '<p><i>&Ouml;ffnungszeiten (Attribut [' +
 						'<a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:opening_hours">opening_hours</a>' +
 						']) nicht erfasst.</i></p>';
 
-					openingTable = '<p>Keine &Ouml;ffnungszeit erfasst.</p>';
+					openingTable 	+= '<p>Keine &Ouml;ffnungszeit erfasst.</p>';
 					/*
-					    <button type="button" id="btnEditOpeningHours"
-                        class="btn btn-outline-info float-left">Jetzt erfassen</button>
-					 */
-
+					var btnEditOpeningHours = L.DomUtil.create('button',
+							'btn btn-outline-secondary mt-2 btnEditOpeningHours');
+					btnEditOpeningHours.setAttribute('type', 'button');
+					btnEditOpeningHours.innerHTML = 'Jetzt erfassen';
+					*/
 				}
 
 				// Modal Tab OSM Info füllen
@@ -2046,7 +2056,7 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 
 					// store feature object
 					$('#featureObj').val(feature);
-					// store layer object (marker) for routing
+					// store layer object (marker/polygon) for routing
 					$('#layerObj').val($(this));
 
 					// set texts in modal elements
@@ -2055,7 +2065,7 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 
 					// table of opning hours
 					$('#openingTable').html(openingTable);
-					$('#btnEditOpeningHours').addClass('disabled');
+
 
 					// table of osm tags
 					$('#osmTagsTable').html(osmTagTable);
@@ -2171,11 +2181,12 @@ function showTravelTime (show) {
  */
 function routeToFeature (routeTargetMarker, travelType) {
 	var srcLatLon = null;
-	var OPNVRouting = false;
 
+	// clear existing src marker
 	if (cashMap.hasLayer(routeSrcMarker)) { cashMap.removeLayer(routeSrcMarker); }
 
 	// if geolocated set blue circle marker as source
+	// TODO select route src point
 	if (myLocation && cashMap.getBounds().contains(myLocation)) {
 
 		myLocationMarker = L.circleMarker(myLocation, {radius: 2}).addTo(cashMap);
@@ -2200,7 +2211,7 @@ function routeToFeature (routeTargetMarker, travelType) {
 			draggable: true
 		}
 	);
-	// check if routing type is available
+	// check if routing type 'transit' is available
 	if (travelType === 'transit' && !getRoutingArea(routeSrcMarker, routeTargetMarker).transit) {
 		routeSrcMarker = null;
 		return false;
@@ -2233,9 +2244,9 @@ function routeToFeature (routeTargetMarker, travelType) {
  *
  * showRoute - animates the route from src to target marker
  *
- * @param src {L.Marker} - source marker
- * @param tgt {L.Marker} - target marker
- * @param travelType {string} - travel type
+ * @param src {L.marker} - source marker
+ * @param tgt {L.marker} - target marker
+ * @param travelType {string} - travel type  ('WALK'|'BIKE'|'TRANSIT')
  *
  */
 function showRoute (src, tgt, travelType) {
@@ -2243,19 +2254,21 @@ function showRoute (src, tgt, travelType) {
 	var routeOptions = r360.travelOptions();
 	routeOptions.setServiceKey('1TJD1WJERN3ORD1DM2PVL2M');
 
+	//
 	endpoint = getRoutingArea(src, tgt).endpoint;
 
 	if (endpoint) {
 
 		routeOptions.setServiceUrl('https://service.route360.net/' + endpoint + '/');
 		routeOptions.setTravelType(travelType);
-		routeOptions.setMaxEdgeWeight(1800);
+		routeOptions.setMaxEdgeWeight(1800);    // max duration on free plans
 		routeOptions.setRecommendations(-1); 	// no alternative route recommendations
 
 		// delete existing route(s)
 		routeLayer.clearLayers();
 		routeLayer.bindPopup('');
 
+		// set src and target
 		routeOptions.addSource(src);
 		routeOptions.addTarget(tgt);
 
@@ -2263,59 +2276,72 @@ function showRoute (src, tgt, travelType) {
 
 			function (routes) {
 
+				// create DOM element
+				var routePopupDOMElem 	= L.DomUtil.create('div', 'card border-0');
+				var routePopupTable 	= L.DomUtil.create('div', 'routeInfoTable', routePopupDOMElem);
+				var routePopupBtnDelete	= L.DomUtil.create('button', 'btn btn-outline-secondary routePopupBtnDelete mt-2',
+											routePopupDOMElem);
+				routePopupBtnDelete.setAttribute('type', 'button');
+				routePopupBtnDelete.innerHTML = 'Route l&ouml;schen';
+
+				var pointArray 	= L.GeoJSON.latLngsToCoords(routes[0].points);
+				var popupCenter = turf.along(turf.lineString(pointArray), routes[0].length/2, 'meters');
+
+				var popupRouteDetails 	= '';
+				var isTransit = false;
+
+				// fade in route with points (walk) and lines (bike) and circle	(transfer)
 				r360.LeafletUtil.fadeIn(routeLayer, routes[0], 1000, 'travelDistance', {}, showRouteInfo);
 
-				// only two endpoints -> only routes [0]
-				var popupRouteDetails = '<div class="routeInfoTable">';
+				// iterate segments to fill info popup
 				routes[0].routeSegments.forEach(function (segment) {
 
 					popupRouteDetails += '<div class="routeInfoRow">';
 					switch (segment.type) {
 						case 'WALK':
-							popupRouteDetails += '<div class="routeInfoCell"><img width="20" height="25" src="img/man.svg"></div>' +
+							popupRouteDetails +=
+								'<div class="routeInfoCell"><img width="20" height="25" src="img/man.svg"></div>' +
 								'<div class="routeInfoCell">' + formatDistance(segment.distance * 1000) + ' / ' +
 								formatTime(segment.travelTime) + '</div>';
 							break;
 						case 'BIKE':
-							popupRouteDetails += '<div class="routeInfoCell"><img width="25" height="25" src="img/bicycle.svg"></div>' +
+							popupRouteDetails +=
+								'<div class="routeInfoCell"><img width="25" height="25" src="img/bicycle.svg">' +
+								'</div>' +
 								'<div class="routeInfoCell">' + formatDistance(segment.distance * 1000) + ' / ' +
-								formatTime(segment.travelTime) + '</div>';
+								formatTime(segment.travelTime) + '' +
+								'</div>';
 							break;
 						case 'TRANSFER':
 							break;
 						case 'TRANSIT':
-							srvLog('routeType: ' + segment.getRouteType() + ' /Linie: ' + segment.routeShortName);
 
-							popupRouteDetails += '<div class="routeInfoCell">' + getRouteTypeIcon(segment.routeType) + '</div>' +
+							popupRouteDetails +=
+								'<div class="routeInfoCell">' + getRouteTypeIcon(segment.routeType) + '</div>' +
 								'<div class="routeInfoCell">Linie ' + segment.routeShortName  +
-								((segment.tripHeadSign) ? ' ("' + segment.tripHeadSign + '")' : '')  +
+									((segment.tripHeadSign) ? ' ("' + segment.tripHeadSign + '")' : '')  +
 								'</div>' +
-								'</div>' +
-								'<div class="routeInfoRow"><div class="routeInfoCell"></div>' +
-								'<div class="routeInfoCell">' + segment.startname + '&nbsp;&rarr;<br />' + segment.endname + '</div>';
+								'</div><div class="routeInfoRow">' +
+								'<div class="routeInfoCell"></div>' +
+								'<div class="routeInfoCell">' + segment.startname + '&nbsp;&rarr;<br />' + segment.endname + '</div>' +
+								'</div>';
+							isTransit = true;
 							break;
 					}
+					// end of table row
 					popupRouteDetails += '</div>';
 				});
-				popupRouteDetails += '</div>';
-				routeLayer.setPopupContent(popupRouteDetails);
 
-				/*
-				var center = turf.center(routeLayer.toGeoJSON());
-				var routeLayerCenter = [center.geometry.coordinates[1], center.geometry.coordinates[0]];
-				console.log(routeLayerCenter);
-				var centerMarker = L.marker(routeLayerCenter).addTo(cashMap);
-				*/
+				// add total time on transit routes
+				if (isTransit) {
+					popupRouteDetails +=  '<div class="routeInfoRow"><div class="routeInfoCell"></div>' +
+						'<div class="routeInfoCell">Gesamtdauer: ' + formatTime(routes[0].travelTime) + '</div></div>'
+				}
+				routePopupTable.innerHTML = popupRouteDetails;
 
-				routeLayer.on('popupclose', function () {
-					routeLayer.clearLayers();
-					if (cashMap.hasLayer(routeSrcMarker)) {
-						cashMap.removeLayer(routeSrcMarker);
-					}
-					if (cashMap.hasLayer(myLocationMarker)) {
-						cashMap.removeLayer(myLocationMarker)
-					}
-				});
+				routeLayer.setPopupContent(routePopupDOMElem);
+				routeLayer.openPopup(L.GeoJSON.coordsToLatLng(popupCenter.geometry.coordinates));
+
 			},
 			function (errcode, errmsg) {
 				srvLog('routing error: ' + errcode + '/' + errmsg);
@@ -2323,12 +2349,12 @@ function showRoute (src, tgt, travelType) {
 
 				// max routing time 1800 sec -> translate message
 				if (errcode === 'no-route-found' && errmsg.search(/1800/i) > -1) {
-					showError('Routen länger als 30 min nicht möglich');
+					showError('Routen l&auml;nger als 30 min nicht m&ouml;glich');
 				} else {
-					// TODO translate error msg
 					showError('Fehler beim Routing: <br />' + errmsg);
 				}
 
+				// delete src marker
 				if (cashMap.hasLayer(routeSrcMarker)) {
 					cashMap.removeLayer(routeSrcMarker);
 				}
@@ -2347,6 +2373,28 @@ function showRouteInfo(event) {
 
 }
 
+/**
+ *
+ * map click handler - handles only event on popup Delete button bubbeled to map
+ *
+ * - delete route layer
+ * - close popup
+ * - delete source marker
+ * - delete blue circle marker if present
+ *
+ */
+$('#cashMap').on('click', '.routePopupBtnDelete', function() {
+
+	routeLayer.clearLayers();
+	routeLayer.closePopup();
+	if (cashMap.hasLayer(routeSrcMarker)) {
+		cashMap.removeLayer(routeSrcMarker);
+	}
+	if (cashMap.hasLayer(myLocationMarker)) {
+		cashMap.removeLayer(myLocationMarker)
+	}
+
+});
 
 /**
  *
@@ -2533,9 +2581,30 @@ function clearAtmLayersAndRoutes (map) {
 		overlayLayers[verbund] = L.geoJSON(null);
 
 		// clear routes and start marker
+		routeLayer.closePopup();
 		routeLayer.clearLayers();
+
 		if (cashMap.hasLayer(routeSrcMarker)) {	cashMap.removeLayer(routeSrcMarker); }
 	})
+}
+
+/**
+ *
+ * getTargetMarker - computes center if layer is polygon, else return layer
+ *
+ * @param featureLayer	- featureLayer
+ * @returns {L.Marker} 	- when polygon: centroid of polygon, else layer itself
+ */
+function getTargetMarker (featureLayer) {
+
+	if (featureLayer.feature.geometry.type === 'Polygon') {
+		var centroid = turf.centroid(featureLayer.feature);
+		return L.marker ([centroid.geometry.coordinates[1], centroid.geometry.coordinates[0]]);
+	} else {
+		// return marker
+		return (featureLayer)
+	}
+
 }
 
 /**
@@ -2844,20 +2913,26 @@ function uploadCreation (changesetId) {
 					tag.value !== 'Andere ...' &&   // if operator = 'Andere...' take specialOperator field
 					tag.name.substr(0,1) !== "x" && // internal fields start with "x"
 					tag.value.length > 0) {
-					// some special handling ...
-					// check institut field on Sparkassen, VR-Banken
+					// some special handling on Sparkassen, VR-Banken
 					if (tag.name === 'operator' && tag.value === 'Sparkassen ...') {
-						xmlString += "<tag k='operator' v='Sparkasse'/>";
+						// set <name> tag to general bank name
+						xmlString += "<tag k='name' v='Sparkasse'/>";
+
 					} else if (tag.name === 'operator' && tag.value === 'Volksbanken ...') {
-						xmlString += "<tag k='operator' v='Volksbank'/>";
-					// take special operator value as name tag
+						// set <name> tag to general bank name
+						xmlString += "<tag k='name' v='Volksbank'/>";
+
+
 					} else if (tag.name === 'specialOperator') {
-						xmlString += "<tag k='name' v='" + tag.value + "'/>";
+						// take special operator value as <operator> tag
+						xmlString += "<tag k='operator' v='" + tag.value + "'/>";
+
 					// special: German atm networks
 					} else if (tag.name === 'network') {
 						if (tag.value !== 'Keiner') {
 							xmlString += "<tag k='network' v='" + tag.value + "'/>";
 						}
+
 					// default: put field into changeset
 					} else {
 						xmlString += "<tag k='" + tag.name + "' v='" + tag.value + "'/>";
