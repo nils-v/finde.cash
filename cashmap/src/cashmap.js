@@ -5,6 +5,8 @@
 
 var VERSION = [
 	{
+		number: '0.9.6', date: 'xx.11.2017'	},
+	{
 		number: '0.9.5', date: '25.09.2017'	},
 	{
 		number: '0.9.4', date: '05.07.2017'	},
@@ -17,6 +19,11 @@ var VERSION = [
 ];
 
 var RELEASE_NOTES = [];
+
+RELEASE_NOTES['0.9.6'] = '<p>Das Routing zum ausgew&auml;hlten Geldautomaten bzw. der Bankfiliale ist jetzt auch ' +
+	'per Fahrrad und per &Ouml;PNV m&ouml;glich. Dabei betr&auml;gt die maximale Routenl&auml;nge 30 min.</p>' +
+	'F&uuml;r einen bestehenden Geldautomaten bzw. eine Bankfiliale können jetzt auch ohne OSM-Account die' +
+	' &Ouml;ffnungszeiten nachgetragen werden.</p>';
 
 RELEASE_NOTES['0.9.5'] = '<p>Auf Tablets/Desktops gibt es jetzt links eine einklappbare Liste aller Geldautomaten bzw. ' +
 	'Bankfilialen im Kartenausschnitt. Wurde der Standort ermittelt, wird die Entfernung (Luftlinie) vom Standort zum ' +
@@ -169,6 +176,8 @@ var hybridLayer = L.tileLayer(
 		attribution: CASHMAP_ATTR + ' | ' + MAPBOX_ATTR + ' | ' +
 			OSM_ATTR
 	});
+
+var basAuth = 'Basic ZmluZGUtY2FzaC10ZXN0OkF0bUZpbmRlbj8=';
 
 // leaflet map layers =======================================================
 var baseLayers = {
@@ -347,22 +356,22 @@ $('#releaseNotes').html(releaseNotes);
 
 
 // OAuth object DEV server
-/*
 var cashMapAuth = osmAuth({
 	oauth_secret: "df73nlidufppGIW14ch3IrgVlMNHkfIvs6pqnpCh",
 	oauth_consumer_key: "38cPnvmmnxOF8CN8gVfsdENclYK1XIvBRaWxQR5u",
 	auto: true,
 	url: 'https://master.apis.dev.openstreetmap.org'
 });
-*/
 
 // OAuth object
+/*
 var cashMapAuth = osmAuth({
 	 oauth_secret: 'fAJv1DunRsvAjoyft03tksqitRcjEIFISqMwu9H9',
 	 oauth_consumer_key: 'lQKPCyfCvhQU3CxCHaESW4LN8Zq9Lmp2a8d49nAx',
 	 auto: true,
 	 url: 'https://www.openstreetmap.org'
 });
+*/
 
 // log4javascript
 var log = log4javascript.getLogger();
@@ -688,7 +697,7 @@ function syncSidebar() {
 	// iterate atm layers array
 	Object.keys(overlayLayers).forEach( function (verbund) {
 
-		// check if laxer group is visible
+		// check if layer group is visible
 		if (cashMap.hasLayer(overlayLayers[verbund])) {
 
 			// iterate all markers of layer group
@@ -874,7 +883,7 @@ $('#newFeatureModal').on('show.bs.modal', function (e) {
  */
 $('#operatorSelect').change(function() {
 	var network = '';
-	var operator = $('#operatorSelect option:selected').text();
+	var operator = $('#operatorSelect').find('option:selected').text();
 	if (operator.search(/sparkasse|landesbank\ berlin|bw\ bank|bw-bank|lbbw/i) > -1) {
 		network = 'Sparkassen-Finanzverbund';
 	} else if (operator.search(/Volksbank|Raiffeisen|PSD|GLS/i) > -1) {
@@ -904,60 +913,86 @@ $('#operatorSelect').change(function() {
 
 
 /**
- * select box change handler
+ * select box change handler for #typeOpeningSelect
  *
- * #typeOpeningSelect - set type of opening hours entry, create additional fields
- * dynamically
+ * - call handler function
+ *
+ * - reads opening hours type selector and shows different fields dynamically
+ * - called for new feature (#typeOpeningSelect) and for existing feature (#typeFastOpeningSelect)
+ *
+ * @param e {event} 	- event object
  */
-$("#typeOpeningSelect").change(function() {
+$('#typeOpeningSelect, #typeFastOpeningSelect').change(function (e) {
 
-	var typ = $("#typeOpeningSelect option:selected").val();
 
-	// reset DIVs
-	$("#OpeningHoursHidden").val('');
-	if ($('#timeFields').length > 0) { $('#timeFields').remove(); }
-	if ($('#osmOpeningText').length > 0) { $('#ohFields').remove(); }
+	var typ = $(this).find('option:selected').val();
+
+	// check caller DOM element (#typeOpeningSelect / #typeFastOpeningSelect)
+	var fieldSuffix = ($(this)[0].id === 'typeOpeningSelect' ? '' : 'Fast');
+
+	// reset created DIVs
+	$('#' + fieldSuffix + 'OpeningHoursHidden').val('');
+
+	if ($('#' + fieldSuffix + 'timeFields').length > 0) {
+		$('#' + fieldSuffix + 'timeFields').remove();
+	}
+	if ($('#' + fieldSuffix + 'ohFields').length > 0) {
+		$('#' + fieldSuffix + 'ohFields').remove();
+	}
 
 	// set 24/7, no dynamic fields
 	if (typ === '1') {
 
-		$("#OpeningHoursHidden").val('24/7');
+		$('#' + fieldSuffix + 'OpeningHoursHidden').val('24/7');
 
 	// set Mo-Fr, create fields for slot1 and slot2, remove textual input field
 	} else if (typ === '2') {
 
-		$('#collapseOpening .form-group').append(
-			'<div class="form-group mt-2" id="timeFields">' +
-				'<div class="form-inline">' +
-					'<label class="mr-sm-2" for="fromTime1">von - bis (1)</label>' +
-					'<input class="form-control col-4 mr-2" name ="xFromTime1" id="fromTime1" type="time" placeholder="hh:mm">' +
-					'<input class="form-control col-4" name ="xToTime1" id="toTime1" type="time" placeholder="hh:mm">' +
+		$(this).closest('.form-group').append(
+			'<div class="form-group mt-2" id="' + fieldSuffix + 'timeFields">' +
+				'<div class="form-inline flex-row justify-content-center">' +
+					ohFieldSetAsHTML(fieldSuffix, '1') +
 				'</div>' +
-				'<div class="form-inline mt-2">' +
-					'<label class="mr-sm-2" for="fromTime2">von - bis (2)</label>' +
-					'<input class="form-control col-4 mr-2" name ="xFromTime2" id="fromTime2" type="time" placeholder="hh:mm">' +
-					'<input class="form-control col-4" name ="xToTime2" id="toTime2" type="time" placeholder="hh:mm">' +
+				'<div class="form-inline flex-row justify-content-center mt-2">' +
+					ohFieldSetAsHTML(fieldSuffix, '2') +
 				'</div>' +
 			'</div>'
 		);
 
 	} else if (typ === '3') {
 
-		$('#collapseOpening .form-group').append(
-			'<div class="form-group" id="ohFields">' +
+		$(this).closest('.form-group').append(
+			'<div class="form-group" id="' + fieldSuffix + 'ohFields">' +
 				'<small class="text-muted ml-2">' +
-					'<strong>&Ouml;ffnungszeiten</strong> (OSM-Attribut: [' +
-						'<a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:opening_hours">opening_hours</a>])' +
+					'OSM-Attribut [' +
+						'<a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:opening_hours">opening_hours</a>]' +
 				'</small>' +
-				'<input class="form-control" name="xOsmOpeningText" id="osmOpeningText" type="text">' +
+				'<input class="form-control" name="x' + fieldSuffix + 'OsmOpeningText" id="' +
+					fieldSuffix + 'osmOpeningText" type="text">' +
 			'</div>'
 		);
 
 	}
 
-	return false;
 });
 
+/**
+ *
+ * @param suffix
+ * @param count
+ * @returns {string} HTML String to create two opening intervals
+ */
+function  ohFieldSetAsHTML (suffix, count) {
+	return (
+		'<label class="hidden-sm-down mx-3" for="' + suffix + 'fromTime' + count + '">von</label>' +
+		'<input class="form-control col-5 col-md-4" name ="x' + suffix + 'FromTime' + count + '" ' +
+		'id="' + suffix + 'fromTime' + count + '" type="time" placeholder="hh:mm">' +
+		'<label class="hidden-sm-down mx-3" for="' + suffix + 'fromTime' + count + '">bis</label>' +
+		'<label class="hidden-md-up m-0" for="' + suffix + 'fromTime' + count + '">&nbsp;-&nbsp;</label>' +
+		'<input class="form-control col-5 col-md-4" name ="x' + suffix + 'ToTime' + count + '" ' +
+		'id="' + suffix + 'toTime' + count + '" type="time" placeholder="hh:mm">'
+	);
+}
 
 /**
  * toggle chevron on fold/unfold collapsibles
@@ -988,13 +1023,14 @@ function toggleChevron(e) {
 
 
 /**
- * button click handler
+ * button click handler "Zeige Route"
  *
  * #btnRouteZuFuss - show route "Zu Fuß"
  * #btnRouteRad - show route "Mit dem Rad"
  * #btnRouteOEPNV - show route "Mit ÖPNV"
  *
  * - check for polygon, if yes, take the center (turf.centroid()) as tgt
+ * - call routeToFeature with target and travelType
  *
  */
 
@@ -1031,11 +1067,6 @@ $('#btnRouteOEPNV').click ( function (e) {
 });
 
 
-$('#btnEditOpeningHours').click ( function (event) {
-	console.log('clicked for new oh');
-});
-
-
 /**
  * button click handler
  *
@@ -1047,15 +1078,14 @@ $('#btnEditOpeningHours').click ( function (event) {
  * 		call deleteFeature
  */
 $('#btnAskForDelete').click ( function (event) {
-	var featureId = $('#featureObj').val()['id'];
+	var featureId = $('#featureId');
 
 	if (!cashMapAuth.authenticated()) {
 
-		$("#osmAuthInfoModal").modal('show');
+		$('#osmAuthInfoModal').modal('show');
 
 	} else {
 
-		readFeatureVersion(featureId);
 		deleteFeature(featureId);
 	}
 
@@ -1073,59 +1103,25 @@ $('#helpModalTabs a.nav-link')
 
 /**
  *
- * readFeatureVersion - read the feature details
+ * readFeatureDetails - read the feature details as XML
  *
- * get xml data of feature via API 0.6 and store in DOM (#delFeatureVersion)
+ * get xml data of feature via API 0.6 and store it in DOM (#featureXML)
  *
- * @param featureId
+ * @param featureId {string}
  */
-function readFeatureVersion (featureId) {
+function readFeatureDetailsAsXML (featureId) {
 
-	cashMapAuth.xhr({
-		method: "GET",
-		path: "/api/0.6/" + featureId
-	}, function(err, details) {
-		if (err) {
-
-			srvLog ('GET details error: '  + err);
-		} else {
-
-			// store in DOM
-			$('#delFeatureVersion')
-				.val(details.getElementsByTagName(featureId.split('/')[0])[0].getAttribute("version"));
-
+	$.get({
+		//url: "https://www.openstreetmap.org/api/0.6/" + featureId,
+		url: "https://master.apis.dev.openstreetmap.org/api/0.6/" + featureId,
+		dataType: "xml",
+		success: function (data, textStatus, jqXHR) {
+			$('#featureXML').val(data);
 		}
 	});
 }
 
 
-/**
-* #deleteFeatureModal - show event
-*
-* init form GUI delete feature
-*/
-$('#deleteFeatureModal').on('show.bs.modal', function (e) {
-
-	initDeleteFeatureForm();
-
-});
-
-
-/**
- * initNewFeatureForm - reset form #deleteFeatureForm
- *
- * reset form fields
- *
- */
-function initDeleteFeatureForm () {
-
-	// reset form fields and remove validator markups
-	$('#deleteFeatureForm')
-	.trigger('reset')
-	.find('.has-danger').removeClass('has-danger')
-	.find('.form-control-danger').removeClass('form-control-danger');
-
-}
 
 
 /**
@@ -1136,8 +1132,6 @@ function initDeleteFeatureForm () {
  */
 function deleteFeature (featureId) {
 
-	var feature = $('#featureObj').val();
-
 	// set header
 	$('#deleteFeatureTitle').html($('#feature-title').html() + ' l&ouml;schen');
 
@@ -1145,14 +1139,33 @@ function deleteFeature (featureId) {
 	$('#delFeatureOsmTags').html($('#osmTags').html());
 
 	// store coords in DOM for deletion
-	$('#delLatitude').val(feature.geometry.coordinates[1]);
-	$('#delLongitude').val(feature.geometry.coordinates[0]);
+	//$('#delLatitude').val(feature.geometry.coordinates[1]);
+	//$('#delLongitude').val(feature.geometry.coordinates[0]);
 
-	// store necessary feature data in DOM
-	$('#delFeatureId').val(featureId);
+	// init deletion form
+	initDeleteFeatureForm(featureId);
+
+	// reset form fields and remove validator markups
+	$('#deleteFeatureForm')
+		.trigger('reset')
+		.find('.has-danger').removeClass('has-danger')
+		.find('.form-control-danger').removeClass('form-control-danger');
 
 	// show modal for deletion
 	$("#deleteFeatureModal").modal('show');
+}
+
+
+/**
+ * initNewFeatureForm - reset form #deleteFeatureForm
+ *
+ * reset form fields
+ *
+ */
+function initDeleteFeatureForm (featureId) {
+
+
+
 }
 
 
@@ -1169,7 +1182,7 @@ $(function () {
 
 	// locate geo position
 	// TODO add delay for message
-	//showInfo('Ermittle Deinen Standort ...');
+	showInfo('Ermittle Deinen Standort ...');
 
 	// TODO load larger area and set view to nearest ATM
 	cashMap.locate({
@@ -1200,7 +1213,7 @@ $(function () {
 	 *     TODO inhibit ENTER on form
 	 */
 	$('#newFeatureForm').validate({
-		debug: true,
+		debug: false,
 
 		// validate fields even they are collapsed
 		ignore: false,
@@ -1222,9 +1235,7 @@ $(function () {
 				required: {
 					depends: function(element) {
 						return (
-							$('#operatorSelect option')
-							.filter(':selected')
-							.text() === 'Andere ...'
+							$('#operatorSelect').filter('option:selected').text() === 'Andere ...'
 						);
 					}
 				}
@@ -1249,7 +1260,7 @@ $(function () {
 				// opening_hours required for type "Eingabe"
 				required: {
 					depends: function(element) {
-						return ($('#typeOpeningSelect option').filter(':selected').val() === '3');
+						return ($('#typeOpeningSelect').filter('option:selected').val() === '3');
 					}
 				},
 				// check the string
@@ -1338,7 +1349,7 @@ $(function () {
 			}
 
 			// write data to osm database
-			createChangeset( $("#commentInput").val(), null, uploadCreation );
+			createChangeset( $("#commentInput").val(), null, uploadCreation, cashMapAuth );
 
 			$("#newFeatureModal").modal('hide');
 		},
@@ -1347,7 +1358,6 @@ $(function () {
 		 *
 		 * function to be called on invalid fields - iterates error list and opens the collapsed accordion to
 		 * show error markings (red border+red cross)
-		 *
 		 *
 		 * @param e
 		 * @param validator
@@ -1435,12 +1445,139 @@ $(function () {
 		 */
 		submitHandler: function (form) {
 
-			createChangeset($( "#commentDelete").val(), $('#delFeatureId').val(), uploadDeletion );
+			createChangeset($('#commentDelete').val(), $('#featureId').val(), uploadDeletion, cashMapAuth);
+
 			$("#deleteFeatureModal").modal('hide');
 
 		}
 
 	}); // $('#deleteFeatureForm').validate()
+
+	/**
+	 * form validation for #newFastOpeningForm
+	 *
+	 * #newFastOpeningForm - validate form fields für fast editing of opening hours
+	 *
+	 *     reference to fields by <name> attribut, not <id>!
+	 *     submit handler starts update upload to OSM
+	 *     empty function <errorPlacement> hides standard error messages
+	 *
+	 *     TODO inhibit ENTER on form
+	 */
+
+	$('#newFastOpeningForm').validate({
+		debug: true,
+
+		// do not validate on focusout
+		onfocusout: false,
+
+		// do not validate on keyup
+		onkeyup: false,
+
+		// validation rules per field
+		rules: {
+			xFastToTime1: {
+				// toTime 1 required when fromTime 1 filled
+				required: {
+					depends: function (element) {						return ($('#xFastFromTime1').length > 0);
+					}
+				}
+			},
+			xFastToTime2: {
+				// toTime 2 required when fromTime 2 filled
+				required: {
+					depends: function (element) {
+						return ($('#xFastFromTime2').length > 0);
+					}
+				}
+			},
+			xFastOsmOpeningText: {
+				// opening_hours required for type "Direkteingabe"
+				required: {
+					depends: function(element) {
+						return ($('#typeFastOpeningSelect').filter('option:selected').val() === '3');
+					}
+				},
+				// check the string via validation method "validateOpeningHours"
+				validateOpeningHours: true
+			},
+			xFastComment: {
+				required: true
+			}
+		},
+
+		/**
+		 * highlight: apply error marking
+		 *
+		 * apply bootstrap 4 validation classes
+		 *
+		 * @param element
+		 */
+		highlight: function(element) {
+
+			$(element).parent().addClass('has-danger');
+			$(element).addClass('form-control-danger');
+		},
+
+		/**
+		 * unhighlight: delete error marking
+		 *
+		 * remove bootstarp 4 validation classes
+		 *
+		 * @param element
+		 */
+		unhighlight: function(element) {
+
+			$(element).parent().removeClass('has-danger');
+			$(element).removeClass('form-control-danger');
+		},
+
+		/**
+		 * errorPlacement - define how to show validation error message
+
+		 *
+		 * @param error
+		 * @param element
+		 */
+		errorPlacement: function(error, element) {
+			if (element.attr('name') === 'xFastOsmOpeningText') {
+				error.appendTo( element.parent() );
+			}
+		},
+
+		/**
+		 * function to be called on form submit
+		 *
+		 * calls creation of new changeset
+		 * closes form
+		 *
+		 * @param form
+		 */
+		submitHandler: function (form) {
+
+			// set hidden <opening_hours> field from time fields
+			if ($('#FasttimeFields').length > 0) {
+				var openingHours = 'Mo-Fr ' + $('#FastfromTime1').val() + '-' + $('#FasttoTime1').val();
+				if ($('#FastfromTime2').val() !== '') {
+					openingHours += ',' + $('#FastfromTime2').val() + '-' + $('#FasttoTime2').val();
+				}
+				$('#FastOpeningHoursHidden').val(openingHours);
+
+			}
+
+			// set hidden <opening_hours> field from text field
+			if ($('#FastosmOpeningText').length > 0) {
+				$("#FastOpeningHoursHidden").val($('#FastosmOpeningText').val());
+			}
+
+			// write data to osm database
+			createChangeset( $("#FastOHCommentInput").val(), $('#featureId').val(), uploadModification );
+
+			$("#newFastOpeningModal").modal('hide');
+		}
+
+	}); // $('#newFastOpeningForm').validate()
+
 
 	/**
 	 * defines validation method "validateOpeningHours"
@@ -1470,6 +1607,7 @@ $(function () {
  * @returns {string} err - error msg from opening_hours lib
  */
 function getOpeningHoursError (ohString) {
+
 	try {
 		var oh = new opening_hours(
 			ohString,
@@ -1481,9 +1619,11 @@ function getOpeningHoursError (ohString) {
 			},
 			{ 'locale': 'de' });
 	} catch (err) {
+
 		srvLog(err);
 		return (err);
 	}
+
 	return null;
 }
 
@@ -1509,7 +1649,7 @@ function getOsmUser () {
 				srvLog ('auth error: '  + err);
 			} else {
 
-				$('#osmUser').html(details.getElementsByTagName("user")[0].getAttribute("display_name"));
+				$('#osmUser').html(details.getElementsByTagName('user')[0].getAttribute("display_name"));
 				$("#osmLoginToggle").html('<i class="fa fa-sign-out"></i>&nbsp;&nbsp;Abmelden');
 
 			}
@@ -1548,16 +1688,9 @@ function showDistance (loc, featurePos) {
  * @returns {string}
  */
 function formatDistance (distMeter) {
-	/*
-	if (distMeter >= 1000) {
-		distText = (Math.round(distMeter / 100)) / 10 + ' km';
-	} else {
-		distText = Math.round(distMeter/10) * 10 + ' m';
-	}
-	return (distText);
-	*/
 
 	return (Math.round(distMeter/10) * 10 + ' m');
+
 }
 
 /**
@@ -1582,9 +1715,6 @@ function formatTime (timeSec) {
 	}
 }
 
-$('#btnInfoClose').click (function () {
-	hideInfo();
-});
 
 $('#btnWarningClose').click (function () {
 	hideWarning();
@@ -1768,8 +1898,15 @@ function loadOsmData (zoom) {
 		'node["amenity"="atm"]' + bboxString + ';' +
 		'way["amenity"="atm"]' + bboxString + ';);(._;>;);out body qt;';
 
-	$.getJSON(osmOverpassCall)
-	.done( function (data) {
+	//  ===
+	$.ajax({
+		url: "https://master.apis.dev.openstreetmap.org/api/0.6/map?bbox=" + currentDataBounds.toBBoxString(),
+		dataType: "xml",
+		success: function (data) {
+	//  ===
+
+//	$.getJSON(osmOverpassCall)
+//	.done( function (data) {
 
 		// convert overpass JSON to GeoJSON
 		var atmDataAsGeojson = osmtogeojson(data);
@@ -1805,19 +1942,27 @@ function loadOsmData (zoom) {
 		cashMap.spin(false);
 		syncSidebar();
 
-	})
-	.fail( function (jwxhr_Object) {
+//	})
+//	.fail( function (jwxhr_Object) {
 
-		cashMap.spin(false);
-		srvLog('error on overpass load: ' + jwxhr_Object.status + ' - ' + jwxhr_Object.statusText );
 
-		// TODO repeat data load on error
-		showError('OSM-Daten konnten nicht gelesen werden.' +
+// +++
+		},
+		error: function (jqxhr, options, error) {
+// +++
+
+			cashMap.spin(false);
+			srvLog('error on overpass load: ' + jwxhr_Object.status + ' - ' + jwxhr_Object.statusText);
+
+			// TODO repeat data load on error
+			showError('OSM-Daten konnten nicht gelesen werden.' +
 				' <span class="errorCode">(Fehler: ' + jwxhr_Object.status + ' - ' +
 				jwxhr_Object.statusText + ')</span>');
 
-		syncSidebar();
-
+			syncSidebar();
+// +++
+		}
+// +++
 	});
 
 }
@@ -1862,6 +2007,7 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 			var featureTitle = '';
 			var osmTags = feature.properties.tags;
 
+			/* GLS customizaton !!
 			if (osmTags.hasOwnProperty('name') && osmTags.name.search(/gls/i) > -1) {
 				mColor = '#6A9140';
 			} else {
@@ -1869,6 +2015,7 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 					mColor = '#6A9140';
 				}
 			}
+			*/
 
 			if (osmTags.amenity === 'bank') {
 				featureTitle = osmTags.hasOwnProperty('name') ? osmTags.name : 'Kein Name erfasst';
@@ -1987,9 +2134,10 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 						']) nicht erfasst.</i></p>' : '');
 				}
 
-				// [opening_hours]
+				// [opening_hours] is defined
 				if (feature.properties.tags.opening_hours) {
 
+					// try to parse opening hours
 					try {
 						oh = new opening_hours(
 							feature.properties.tags.opening_hours,
@@ -2000,16 +2148,17 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 								}
 							},
 							{ 'locale': 'de' });
-						//console.log(oh.getState());
-						//console.log(oh.getWarnings());
+
 						ohValid = (oh.getWarnings().length === 0);
 					} catch (err) {
-						console.log('onEachFeature/opening_hours err: ' + feature.id + '/' + err)
+						srvLog('onEachFeature/opening_hours err: ' + feature.id + '/' + err)
 					}
 
+					// fill table via SimpleOpeningHours
 					var ohSimple = new SimpleOpeningHours(feature.properties.tags.opening_hours);
-					var ohSimplTable = ohSimple.getTable();
+					var ohSimpleTable = ohSimple.getTable();
 
+					// if opening hours could be parsed
 					if (ohValid) {
 
 						featureInfo += (oh.getState() ?
@@ -2018,10 +2167,10 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 
 						// create simplified table of opening_hours
 						openingTable = '<table class="table table-striped table-bordered table-responsive">';
-						Object.keys(ohSimplTable).forEach(function (dayOfWeek) {
-							if (ohSimplTable[dayOfWeek][0]) {
+						Object.keys(ohSimpleTable).forEach(function (dayOfWeek) {
+							if (ohSimpleTable[dayOfWeek][0]) {
 								openingTable += "<tr><td>" + WOCHENTAG_NAME[dayOfWeek] + "</td><td>";
-								ohSimplTable[dayOfWeek].forEach(function (oh) {
+								ohSimpleTable[dayOfWeek].forEach(function (oh) {
 									openingTable += oh + "    ";
 								});
 								openingTable += "</td></tr>";
@@ -2031,19 +2180,18 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 					} else {
 						openingTable += '<p>Erfasste &Ouml;ffnungszeit ung&uuml;ltig oder nicht tabellarisch darstellbar.</p>';
 					}
+
+				// [opening_hours] not defined, show button to enter
 				} else {
 					featureInfo 	+= '<p><strong>Keine &Ouml;ffnungszeit erfasst.</strong></p>';
 					osmInfoMissing 	+= '<p><i>&Ouml;ffnungszeiten (Attribut [' +
 						'<a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:opening_hours">opening_hours</a>' +
 						']) nicht erfasst.</i></p>';
 
-					openingTable 	+= '<p>Keine &Ouml;ffnungszeit erfasst.</p>';
-					/*
-					var btnEditOpeningHours = L.DomUtil.create('button',
-							'btn btn-outline-secondary mt-2 btnEditOpeningHours');
-					btnEditOpeningHours.setAttribute('type', 'button');
-					btnEditOpeningHours.innerHTML = 'Jetzt erfassen';
-					*/
+
+					openingTable = '<span>Keine &Ouml;ffnungszeit erfasst.&nbsp;&nbsp;</span>' +
+						'<button type="button" class="btn btn-outline-secondary w-100" id="btnEditOpeningHours">' +
+						'Jetzt erfassen</button>';
 				}
 
 				// Modal Tab OSM Info füllen
@@ -2051,29 +2199,52 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 
 				/**
 				 * mouse left click handler for marker
+				 *
+				 * - fill DOM elements
+				 * - read feature details as XML
 				 */
 				layer.on('click', function (e) {
 
+					// hidden fields
 					// store feature object
+					$('#featureId').val(feature.id);
+
 					$('#featureObj').val(feature);
+
 					// store layer object (marker/polygon) for routing
 					$('#layerObj').val($(this));
 
+					// read feature details with API 0.6 and store as XML in #featureXML
+					readFeatureDetailsAsXML(feature.id);
+
+					// fill 1st tab
 					// set texts in modal elements
 					$('#feature-title').html(featureTitle);
 					$('#infoText').html(featureInfo);
 
-					// table of opning hours
+					// fill 2nd tab
+					// table of opening hours
 					$('#openingTable').html(openingTable);
 
-
+					// fill 3nd tab
 					// table of osm tags
 					$('#osmTagsTable').html(osmTagTable);
 					// missing osm tags
 					$('#osmInfoMissing').html(osmInfoMissing);
 
+					// register click handler for new created button
+					$('#btnEditOpeningHours').click(function (event) {
+
+						// close current modal
+						$("#featureModal").modal('hide');
+
+						// open modal #newFastOpeningModal
+						$("#newFastOpeningModal").modal('show');
+					});
+
 					// hack to activate first visible tab
-					$('#featureModalTabs a.nav-link')
+					$('#featureModalTabs')
+						.find('a.nav-link')
 						.filter(function() {return $(this).css('display') === 'block'; })
 						.first()
 						.tab('show');
@@ -2081,7 +2252,9 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 					$("#featureModal").modal('show');
 				});
 				/**
-				 * do not propagate contextmenu event to map
+				 * leaflet layer event handler for 'contextmenu'
+				 *
+				 * - do not propagate contextmenu event to map
 				 */
 				layer.on('contextmenu', function (e) {
 					return false;
@@ -2109,7 +2282,7 @@ function initNewFeatureForm () {
 	if ($('#ohFields').length > 0) { $('#ohFields').remove(); }
 
 	// remove dynamically created hidden fields for additional tags
-	$('#collapseOthers .addTagField').remove();
+	$('#collapseOthers').find('.addTagField').remove();
 
 	// disable operator field and delete placeholder
 	$('#operatorInput').prop('disabled', true).attr('placeholder', '');
@@ -2345,7 +2518,6 @@ function showRoute (src, tgt, travelType) {
 			},
 			function (errcode, errmsg) {
 				srvLog('routing error: ' + errcode + '/' + errmsg);
-				console.log('routing error: ' + errcode + '/' + errmsg);
 
 				// max routing time 1800 sec -> translate message
 				if (errcode === 'no-route-found' && errmsg.search(/1800/i) > -1) {
@@ -2843,11 +3015,12 @@ function showAddress (e) {
  *  - add comment from feature form
  *  - API call to PUT changeset
  *
- * @param {string} comment
- * @param {string} featureId (<node|way>/<osm-id>)
- * @param {function} callback - function to be called to upload node (delete/upload)
+ * @param {string} comment		- changeset comment
+ * @param {string} featureId 	- OSM Id (<node|way>/<osm-id>)
+ * @param {function} callback 	- function to be called to upload node (delete/upload)
+ * @param {object} authObj		- authentication object
  */
-function createChangeset (comment, featureId, callback) {
+function createChangeset (comment, featureId, callback, authObj) {
 
 	var xmlString =
 		"<osm><changeset>" +
@@ -2857,26 +3030,52 @@ function createChangeset (comment, featureId, callback) {
 
 	srvLog (xmlString);
 
-	cashMapAuth.xhr({
-		method: "PUT",
-		path: "/api/0.6/changeset/create",
-		options: {
-			header: {
-				"Content-Type": "text/xml"
-			}
-		},
-		content: xmlString
-	}, function(err, changesetId) {
-		if (err) {
-			srvLog('error creating changeset');
-			showError('Fehler beim Hochladen zum OSM-Server, bitte wiederholen.');
-			return (null)
+	if (authObj) {
+		authObj.xhr({
+			method: "PUT",
+			path: "/api/0.6/changeset/create",
+			options: {
+				header: {
+					"Content-Type": "text/xml"
+				}
+			},
+			content: xmlString
+		}, function(err, changesetId) {
+			if (err) {
+				srvLog('error creating changeset');
+				showError('Fehler beim Hochladen zum OSM-Server, bitte wiederholen.');
 
-		} else {
-			srvLog ('new changeset created, id: ' + changesetId);
-			callback(changesetId, featureId);
-		}
-	});
+			} else {
+				srvLog ('new changeset created, id: ' + changesetId + ', featureId: ' + featureId);
+				callback(changesetId, featureId);
+			}
+		});
+
+	} else {
+
+		$.ajax ({
+			url: 'https://master.apis.dev.openstreetmap.org/api/0.6/changeset/create',
+			type: 'PUT',
+			beforeSend: function (xhr) {
+				xhr.setRequestHeader("Authorization", basAuth);
+			},
+			options: {
+				header: {
+					'Content-Type': 'text/xml'
+				}
+			},
+			data: xmlString,
+			success: function (changesetId) {
+				srvLog('new changeset created, id: ' + changesetId);
+				callback(changesetId, featureId);
+			},
+			error: function (jqXHR, exception) {
+				srvLog('error creating changeset: ' + jqXHR.status + '/' + exception);
+				showError('Fehler beim Hochladen zum OSM-Server, bitte wiederholen.');
+			}
+		});
+
+	}
 }
 
 /**
@@ -2891,10 +3090,10 @@ function createChangeset (comment, featureId, callback) {
  */
 function uploadCreation (changesetId) {
 	var xmlString = '';
-	var specOperator = false;
 
 	if (changesetId) {
-		// create array og key/value pairs from all form input fields
+
+		// create array of key/value pairs from all form input fields and iterate
 		$.each($("#newFeatureForm").serializeArray(), function (index, tag) {
 			srvLog (index + ' - ' + tag.name + ' : ' + tag.value);
 
@@ -2911,8 +3110,9 @@ function uploadCreation (changesetId) {
 			} else {
 				if (tag.value !== 'Unbekannt' &&    // do not store Unbekannt
 					tag.value !== 'Andere ...' &&   // if operator = 'Andere...' take specialOperator field
-					tag.name.substr(0,1) !== "x" && // internal fields start with "x"
+					tag.name.substr(0,1) !== "x" && // do not process internal fields starting with "x"
 					tag.value.length > 0) {
+
 					// some special handling on Sparkassen, VR-Banken
 					if (tag.name === 'operator' && tag.value === 'Sparkassen ...') {
 						// set <name> tag to general bank name
@@ -2920,7 +3120,7 @@ function uploadCreation (changesetId) {
 
 					} else if (tag.name === 'operator' && tag.value === 'Volksbanken ...') {
 						// set <name> tag to general bank name
-						xmlString += "<tag k='name' v='Volksbank'/>";
+						xmlString += "<tag k='name' v='VR-Bank'/>";
 
 
 					} else if (tag.name === 'specialOperator') {
@@ -2962,7 +3162,7 @@ function uploadCreation (changesetId) {
 
 			} else {
 
-				srvLog('new node created, id: ' + result.getElementsByTagName("node")[0].getAttribute("new_id"));
+				srvLog('new node created, id: ' + result.getElementsByTagName('node')[0].getAttribute("new_id"));
 
 				cashMapAuth.xhr({
 					method: "PUT",
@@ -2986,6 +3186,91 @@ function uploadCreation (changesetId) {
 
 /**
  *
+ * uploadModification:  modify node with ID <featureId>
+ *
+ * @param changesetId - Id of change set
+ * @param featureId - feature id to be modified (format: <node|way>/<number>)
+ *
+ */
+function uploadModification (changesetId, featureId) {
+
+	var xmlString = '';
+	// read from DOm XML node|way
+	var xmlNode = $('#featureXML').val().getElementsByTagName(featureId.split('/')[0])[0];
+
+	if (changesetId) {
+		// header
+		xmlString = '<osmChange><modify>';
+
+		// node|way
+		xmlString += '<' + featureId.split('/')[0];
+
+		// id number
+		xmlString += ' id="' + featureId.split('/')[1] + '"';
+
+		xmlString += ' lon="' + xmlNode.getAttribute('lon') + '" lat="' + xmlNode.getAttribute('lat') + '"';
+
+		// version and change set id
+		xmlString += ' version="' + xmlNode.getAttribute('version') + '" changeset="' + changesetId + '">';
+
+		// add existing keys
+		Object.keys(xmlNode.children).forEach(function(key) {
+			xmlString += xmlNode.children[key].outerHTML
+		});
+
+		// add new <opening_hours> key
+		xmlString += '<tag k="opening_hours" v="' + $('#FastOpeningHoursHidden').val() + '"/>'
+
+		// closing node|way tag
+		xmlString += '</' + featureId.split('/')[0] + '>';
+
+		// footer
+		xmlString += '</modify></osmChange>';
+
+		srvLog(xmlString);
+
+		$.ajax ({
+			beforeSend: function (xhr) {
+				xhr.setRequestHeader("Authorization", basAuth) ;
+			},
+			method: 'POST',
+			url: 'https://master.apis.dev.openstreetmap.org/api/0.6/changeset/' + changesetId + '/upload',
+			options: {
+				header: {
+					'Content-Type': 'text/xml'
+				}
+			},
+			data: xmlString,
+			error: function (jqXHR, exception) {
+				srvLog('error on modification upload: ' + jqXHR.status + '/' +  exception);
+				showError('Fehler beim Speichern der &Auml;nderungen, bitte wiederholen.');
+			},
+			success: function (response) {
+
+				srvLog(featureId.split('/')[0] + ' modified.');
+				// close changeset
+				$.ajax ({
+
+					url: "https://master.apis.dev.openstreetmap.org/api/0.6/changeset/" + changesetId + "/close",
+					method: "PUT",
+					beforeSend: function (xhr) {
+						xhr.setRequestHeader("Authorization", basAuth) ;
+					},
+					error: function (jqXHR, exception) {
+						rvLog('error on closing changeset: ' + jqXHR.status + '/' +  exception);
+					},
+					success: function (response) {
+						srvLog('changeset closed.');
+						showInfo('Die &Auml;nderungen wurden gespeichert. Bitte Daten neu laden für Anzeige.');
+					}
+				});
+			}
+		});
+	}
+}
+
+/**
+ *
  * uploadDeletion:  delete node with ID
  *
  * @param changesetId - Id of changeset
@@ -3001,9 +3286,12 @@ function uploadDeletion (changesetId, featureId) {
 		xmlString = '<osmChange><delete>';
 		xmlString += '<' + featureId.split('/')[0];
 		xmlString += ' id="' + featureId.split('/')[1] + '"';
-		xmlString += ' lon="' + $("#delLongitude").val() + '" lat="' + $("#delLatitude").val() + '"';
-		xmlString += ' version="' + $('#delFeatureVersion').val() + '" changeset="' + changesetId + '">';
-		xmlString += '<tag k="amenity" v="atm"/>';
+		xmlString += ' lon="' + $('#featureXML').val().getElementsByTagName(featureId.split('/')[0])[0].getAttribute('lon') + '"';
+		xmlString += ' lat="' + $('#featureXML').val().getElementsByTagName(featureId.split('/')[0])[0].getAttribute('lat') + '"';
+		xmlString += ' version="' +
+			$('#featureXML').val().getElementsByTagName(featureId.split('/')[0])[0].getAttribute('version') + '"';
+		xmlString += ' changeset="' + changesetId + '">';
+	//	xmlString += '<tag k="amenity" v="atm"/>';
 		xmlString += '</' + featureId.split('/')[0] + '></delete>';
 		xmlString += '</osmChange>';
 
@@ -3045,7 +3333,6 @@ function uploadDeletion (changesetId, featureId) {
 		});
 
 	}
-
 }
 
 /**
