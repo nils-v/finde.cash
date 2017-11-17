@@ -175,7 +175,10 @@
                 </div>
 
                 <div class="modal-body">
+                    <span id="featureId"></span>
                     <span id="featureObj"></span>
+                    <span id="featureXML"></span>
+                    <span id="featureVersion"></span>
                     <span id="layerObj"></span>
 
                     <!-- Nav tabs responsive -->
@@ -206,7 +209,7 @@
                             <div id="infoText"></div>
                             <div class="featureLogo" id="logoSVG"></div>
                         </div>
-                        <div class="tab-pane mt-3 m-md-3" role="tabpanel" id="openingTable"></div>
+                        <div class="tab-pane flex-column flex-sm-row mt-3 m-md-3" role="tabpanel" id="openingTable"></div>
                         <div class="tab-pane mt-3 m-md-3" role="tabpanel" id="osmTags">
                             <div id="osmTagsTable"></div>
                             <div id="osmInfoMissing"></div>
@@ -330,12 +333,10 @@
                                     </h6>
                                 </div>
                                 <div id="collapseOpening" class="collapse" role="tabpanel" aria-labelledby="headerOpening">
-                                    <div class="card-block">
+                                    <div id="getOpeningHours" class="card-block">
 
-                                        <div class="form-group">
-
+                                        <div class="form-group mb-0">
                                             <input type="hidden" id="OpeningHoursHidden" name="opening_hours">
-
                                             <select class="form-control" id="typeOpeningSelect" name="xTypeOpening">
                                                 <option value="" disabled selected>Ausw&auml;hlen ...</option>
                                                 <option value="1">24/7 (st&auml;ndig ge&ouml;ffnet/zug&auml;nglich)</option>
@@ -361,7 +362,7 @@
                                 <div id="collapseAddress" class="collapse" role="tabpanel" aria-labelledby="headerAddress">
                                     <div class="card-block">
 
-                                        <div class="form-group">
+                                        <div class="form-group mb-0">
                                             <small id="streetHelp" class="text-muted ml-2">
                                                 <strong>Stra&szlig;e, Nr.</strong> (OSM-Attribut: [
                                                 <a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>]):
@@ -408,7 +409,7 @@
                                 <div id="collapseOther" class="collapse" role="tabpanel" aria-labelledby="headerOther">
                                     <div class="card-block">
 
-                                        <div class="form-group">
+                                        <div class="form-group mb-0">
                                             <small id="osmHelp" class="text-muted ml-2">
                                                 <strong>Zus&auml;tzliche </strong>
                                                 <a target="_blank" href="https://wiki.openstreetmap.org/wiki/DE:Attribut">OSM-Attribute</a>:
@@ -490,6 +491,53 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
+    <!-- Schnell-Anlage Öffnungszeiten -->
+    <div class="modal fade" id="newFastOpeningModal" tabindex="-1" role="dialog" data-backdrop="static" >
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+
+                <form id="newFastOpeningForm">
+                    <div class="modal-header">
+                        <div class="modal-title text-primary">&Ouml;ffnungszeiten erfassen</div>
+                        <button type="button" id="btnFormClose" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div class="form-group mb-0">
+                            <input type="hidden" id="FastOpeningHoursHidden" name="opening_hours">
+                            <select class="form-control" id="typeFastOpeningSelect" name="xFastTypeOpening">
+                                <option value="" disabled selected>Ausw&auml;hlen ...</option>
+                                <option value="1">24/7 (st&auml;ndig ge&ouml;ffnet/zug&auml;nglich)</option>
+                                <option value="2">Mo-Fr, von-bis</option>
+                                <option value="3">Eingabe nach OSM-Konvention</option>
+                                <option value="4">Unbekannt</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <small id="levelComment" class="form-text text-muted ml-2">
+                                <strong>Kommentar (erforderlich&nbsp;-&nbsp;</strong><a target="_blank"
+                                                                                        href="http://wiki.openstreetmap.org/wiki/DE:Good_changeset_comments">Warum?</a>):
+                            </small>
+                            <label class="sr-only" for="FastOHCommentInput">Kommentar</label>
+                            <textarea class="form-control" id="FastOHCommentInput" name="xFastComment" rows="3"
+                                      placeholder="&Auml;nderungskommentar f&uuml;r die OSM Community..."></textarea>
+                        </div>
+
+                    </div> <!-- modal-body -->
+
+                    <div class="modal-footer flex-column flex-sm-row">
+                        <button type="button" id="btnFormCancel" class="btn btn-outline-secondary w-100 mr-0 mr-sm-1"
+                                data-dismiss="modal">Abbrechen</button>
+                        <button type="submit" id="btnFormSubmit" class="btn btn-primary w-100 ml-0 ml-sm-1 mt-2 mt-sm-0">
+                            Speichern</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Feature löschen -->
     <div class="modal fade" id="deleteFeatureModal" tabindex="-1" role="dialog" style="overflow-y: auto">
         <div class="modal-dialog" role="document">
@@ -501,7 +549,6 @@
                     </div>
 
                     <div class="modal-body">
-                        <span id="delFeatureId"></span>
                         <span id="delFeatureVersion"></span>
                         <span id="delLatitude"></span>
                         <span id="delLongitude"></span>
@@ -747,11 +794,16 @@
                                     </span>
                                     <div class="m-2">
                                         <i class="text-primary fa fa-envelope fa-lg" aria-hidden="true"></i>
-                                        info (at) osm-maps.eu
+                                        <a target="_blank" href="mailto:info@osm-maps.eu">info (at) osm-maps.eu</a>
                                     </div>
                                     <div class="m-2">
                                         <i class="text-primary fa fa-twitter fa-lg" aria-hidden="true"></i>
                                         <a target="_blank" href="http://www.twitter.com/osmMaps">osmMaps</a>
+                                    </div>
+                                    <div class="m-2">
+                                        <i class="text-primary fa fa-wikipedia-w fa-lg" aria-hidden="true"></i>
+                                        <a target="_blank" href="https://wiki.openstreetmap.org/wiki/User:Nils_V">
+                                            OpenStreetMap-Wiki</a>
                                     </div>
                                     <div id="versionNumber" class="m-2"></div>
                                 </div>
@@ -857,9 +909,11 @@
 
     <!-- Info Alert - without button -->
     <div class="container col-12 col-md-8 col-lg-6 fixed-bottom mb-3 invisible" id="infoAlert">
-        <div class="alert alert-info text-center" role="alert">
+        <div class="alert alert-info alert-dismissible text-center" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
             <div class="col-12" id="infoAlertText"></div>
-            <button type="button" class="btn btn-warning mt-2" id="btnInfoClose">Schlie&szlig;en</button>
         </div>
     </div>
 
