@@ -115,6 +115,12 @@ button.sort {
   display: block;
 }
 
+/**************** Responsive Tables ********************/
+// font small
+.table-responsive {
+  font-size: 0.8rem;
+}
+
 /**************** Diverse ******************************/
 // shorten attribution strings on mobile devices
 .hideAttr {
@@ -317,6 +323,12 @@ img.leaflet-contextmenu-icon {
  *    SMALL  and up (SM..XL) (< 577 px width)
  */
 @include media-breakpoint-up(sm) {
+
+  /**************** Responsive Tables ********************/
+  // font small
+  .table-responsive {
+    font-size: 1rem;
+  }
 
   // popup not wider than screen
   .leaflet-popup-content-wrapper,
