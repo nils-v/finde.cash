@@ -22,8 +22,9 @@ var RELEASE_NOTES = [];
 
 RELEASE_NOTES['0.9.6'] = '<p>Das Routing zum ausgew&auml;hlten Geldautomaten bzw. der Bankfiliale ist jetzt auch ' +
 	'per Fahrrad und per &Ouml;PNV m&ouml;glich. Dabei betr&auml;gt die maximale Routenl&auml;nge 30 min.</p>' +
-	'F&uuml;r einen bestehenden Geldautomaten bzw. eine Bankfiliale können jetzt auch ohne OSM-Account die' +
-	' &Ouml;ffnungszeiten nachgetragen werden.</p>';
+	'<p>F&uuml;r einen bestehenden Geldautomaten bzw. eine Bankfiliale können jetzt auch ohne OSM-Account fehlende' +
+	' &Ouml;ffnungszeiten eingetragen werden.</p> +' +
+	'<p>Die genaue Position eines Geldautomaten kann jetzt einfach durch Verschieben auf der Karte korrigiert werden.</p>';
 
 RELEASE_NOTES['0.9.5'] = '<p>Auf Tablets/Desktops gibt es jetzt links eine einklappbare Liste aller Geldautomaten bzw. ' +
 	'Bankfilialen im Kartenausschnitt. Wurde der Standort ermittelt, wird die Entfernung (Luftlinie) vom Standort zum ' +
@@ -97,17 +98,25 @@ var STANDARD_COLOR = {
 	'keiner'	: '#666666'
 };
 
+// search expressions atm networks
+var expSparkasse 	= /sparkasse|landesbank\ berlin|bw\ bank|bw-bank|lbbw/i;
+var expVRBanken 	= /Volksbank|VR-Bank|Raiffeisen|PSD|GLS/i;
+var expCashPool 	= /Sparda|Targo|Santander|citibank|BBBank|Sozialwirtschaft/i;
+var expCashGroup 	= /Commerzbank|Deutsche\ Bank|Postbank|Norisbank|Berliner\ Bank|HypoVereinsbank/i;
+
 var MIN_ZOOM = 13;        // minimal zoom for data load to avoid cluttering
 
 /**
  *  Globale Variablen
  *
  */
-var addressMarker = null,
-	releaseNotes = '',
-	sidebarFeatureList;
+var addressMarker = null;
+var releaseNotes = '';
+var sidebarFeatureList;
 var borderLayer = null;
-var myLocation = null, myLocationMarker = null;
+var myLocation = null
+var myLocationMarker = null;
+var timerID = null;
 
 var currentDataBounds = null;
 
@@ -178,6 +187,7 @@ var hybridLayer = L.tileLayer(
 	});
 
 var basAuth = 'Basic ZmluZGUtY2FzaC10ZXN0OkF0bUZpbmRlbj8=';
+//var basAuth = 'Basic ZmluZGUtY2FzaC1lZGl0b3I6PjRVLm5temRrUURpN25LVDM5UkgqQHglTDlES2FU';
 
 // leaflet map layers =======================================================
 var baseLayers = {
@@ -203,7 +213,6 @@ var highlightLayer = L.geoJSON(null).addTo(cashMap);
 var highlightStyle = {
 	stroke: false,
 	fillColor: "#F3969A",
-	//fillColor: "#0B5898",
 	fillOpacity: 0.8,
 	radius: 20
 };
@@ -245,7 +254,14 @@ var cashMapLayerControl = L.control.layers(baseLayers, null, {
 // bottom right: load data, locate, search, zoom
 L.control.zoom({ position: 'bottomright' }).addTo(cashMap);
 
-var cashMapGeoCoderProvider = L.Control.Geocoder.google();
+var cashMapGeoCoderProvider = L.Control.Geocoder.google(
+	'AIzaSyDig9g9O1D-MQ30uDjz6ROHzJiRPGrZRzU',	{
+		reverseQueryParams: {
+			result_type: 'street_address|route|street_number|postal_code|locality|country'
+			}
+		}
+	);
+
 var cashMapGeoCoder = L.Control.geocoder({
 	position: 		'bottomright',
 	placeholder: 	'Ort/Adresse...',
@@ -280,9 +296,8 @@ L.control.locate({
 	}
 }).addTo(cashMap);
 
-// EasyButton
-// TODO load button add to map only on appropriate zoom
-var btnLoadData = L.easyButton({
+// EasyButton data load
+L.easyButton({
 	id: 'btn-load-data', 		// an id for the generated button
 	position: 'bottomright',    // inherited from L.Control -- the corner it goes in
 	leafletClasses: true,     	// use leaflet classes to style the button?
@@ -299,46 +314,6 @@ var btnLoadData = L.easyButton({
 // bottom left: scale
 L.control.scale({ position: 'bottomleft' }).addTo(cashMap);
 
-// top right: show travel time
-/*
-var btnShowTravelTime = L.easyButton({
-	id: 'btn-show-time', 		// an id for the generated button
-	position: 'topright',      	// inherited from L.Control -- the corner it goes in
-	leafletClasses: true,     	// use leaflet classes to style the button?
-	states:[
-		{                 		// specify different icons and responses for your button
-		stateName: 'show-time',
-		onClick: function(button, map){
-			showTravelTime(true);
-			button.state('hide-time');
-		},
-		title: 'Zu Fu&szlig; in 10 min...',
-		icon: 'fa-clock-o'
-	},	{                 		// specify different icons and responses for your button
-		stateName: 'hide-time',
-		onClick: function(button, map){
-			showTravelTime(false);
-			button.state('show-time');
-		},
-		title: 'Ausschalten',
-		icon: 'fa-times'
-	}]
-}).addTo(cashMap);
-*/
-// r360 services ---------------------------------------------------------
-// show 10 + 20 min travel times from map center
-
-/*
-var travelTimeCloudLayer = r360.leafletPolygonLayer().addTo(cashMap);
-var travelTimeOptions = r360.travelOptions();
-
-travelTimeOptions.setServiceKey('1TJD1WJERN3ORD1DM2PVL2M');
-travelTimeOptions.setServiceUrl('https://service.route360.net/germany/');
-travelTimeOptions.setTravelTimes([600, 1200]);	// we want to have polygons for 10 + 20 minutes walk
-travelTimeOptions.setColors([600, 1200]);	// we want to have polygons for 10 + 20 minutes walk
-
-travelTimeOptions.setTravelType('walk'); 	// go by foot
-*/
 
 // show route
 var routeSrcMarker = L.geoJSON(null);
@@ -413,7 +388,7 @@ $(window).on('resize', function( event ) {
  * - Update sidebar
  */
 cashMap.on('overlayadd', function(e) {
-
+	console.log('*** cashMap.overlayadd');
 	syncSidebar();
 
 });
@@ -425,7 +400,7 @@ cashMap.on('overlayadd', function(e) {
  * - update sidebar
  */
 cashMap.on('overlayremove', function(e) {
-
+	console.log('*** cashMap.overlayremove');
 	syncSidebar();
 
 });
@@ -433,48 +408,47 @@ cashMap.on('overlayremove', function(e) {
 /**
  * bind event handler <movestart> and <zoomstart> to map
  *
+ * - rest timer for data load
  * - switch off spinner
+ * - hide info alert
  */
 cashMap.on('movestart zoomstart', function(e) {
 
+	console.log('*** cashMap.movestart zoomstart');
+
+	window.clearTimeout(timerID);
 	cashMap.spin(false);
-
-	// Move the crosshair to the center of the map when the user pans
-	crosshair.setLatLng(cashMap.getCenter());
-
+	hideInfo();
 });
 
 
 /**
+ * bind event handler <moveend> to map (fires on zoomend, too)
  *
- */
-cashMap.on('move', function(e) {
-	// Move the crosshair to the center of the map when the user pans
-	if (!myLocation) {
-		crosshair.setLatLng(cashMap.getCenter());
-	}
-});
-
-/**
- * bind event handler <moveend> to map (fires on zoomend too)
- *
- *  - if data not l.oaded yet or new map bounds are not fully within loaded area -> check zoom
+ *  - if data not loaded yet or new map bounds are not fully within loaded area -> check zoom
  *  - if zoom >= MIN_ZOOM no data load
- *  - if zoom > MIN_ZOOM start timer for data load  * 	(delayed loading to avoid load errors at fast map moves on mobile devices)
+ *  - if zoom > MIN_ZOOM start timer of 2 sec for data load
+ *  * 	(delayed loading to avoid load errors at fast map moves on mobile devices)
  *  - update sidebar feature list
  *
  */
 cashMap.on('moveend', function(e) {
+	console.log('*** cashMap.moveend');
 
 	var currZoom = cashMap.getZoom();
-
-	hideInfo();
 
 	if (!currentDataBounds || !currentDataBounds.contains(cashMap.getBounds())) {
 
 		if (currZoom >= MIN_ZOOM) {
-			loadOsmData(currZoom);
+			timerID = window.setTimeout(function () {
+				loadOsmData(currZoom);
+			}, 2000);
 		}
+	}
+
+	hideInfo();
+	if (!myLocation) {
+		crosshair.setLatLng(cashMap.getCenter());
 	}
 
 	syncSidebar();
@@ -490,6 +464,7 @@ cashMap.on('moveend', function(e) {
  * 	(data is loaded via moveend event handler)
  */
 cashMap.on('zoomend', function(e) {
+	console.log('*** cashMap.zoomend');
 
 	hideError();
 
@@ -499,12 +474,10 @@ cashMap.on('zoomend', function(e) {
 		currentDataBounds = null;
 
 		showWarning('Zoome weiter hinein, um Daten anzuzeigen!');
-		btnLoadData.disable();
 
 	} else {
 
 		hideWarning();
-		btnLoadData.enable();
 	}
 
 	syncSidebar();
@@ -519,6 +492,7 @@ cashMap.on('zoomend', function(e) {
  * - if accuracy < 1000 m: set location coords to myLocation
  */
 cashMap.on('locationfound', function(e) {
+	console.log('*** cashMap.locationfound');
 
 	hideInfo();
 	if (e.accuracy < 1000) {
@@ -532,7 +506,10 @@ cashMap.on('locationfound', function(e) {
 
 		crosshair.addTo(cashMap);
 		showWarning(ErrText);
-		cashMap.fire('moveend'); // load data
+		// load data with current bounding box
+		cashMap.fire('moveend');
+
+		// set geoLocated to false
 		myLocation = null;
 	}
 
@@ -547,6 +524,7 @@ cashMap.on('locationfound', function(e) {
  * 	- set myLocation to null
  */
 cashMap.on('locationerror', function(e) {
+	console.log('*** cashMap.locationerror');
 
 	var ErrText = 'Dein Standort konnte nicht ermittelt werden.';
 
@@ -563,28 +541,19 @@ cashMap.on('locationerror', function(e) {
 });
 
 
-/**
- *
- * bind event handler <click> to map
- *
- * - remove new feature marker
- */
-cashMap.on('click', function(e) {
 
-	if (cashMap.hasLayer(newMarkerLayer)) { cashMap.removeLayer(newMarkerLayer);}
-
-});
-
-// Geocoder events ------------------------------------------------------------------------------
+// geocoder events ------------------------------------------------------------------------------
 /*
  * bind event handler <markgeocode> to geocoder
  *
  * - if address found:
  * 		remove atm layers
  * 		remove routes
+ * 	    load data
  *
  */
 cashMapGeoCoder.on('markgeocode', function(e) {
+	console.log('*** cashMapGeoCoder.markgeocode');
 
 	// TODO remove marker on location found
 	clearAtmLayersAndRoutes();
@@ -594,6 +563,11 @@ cashMapGeoCoder.on('markgeocode', function(e) {
 });
 
 // jQuery events ------------------------------------------------------------------------------
+/*
+ *
+ * menu items ---------------------------------------------------------------------------------
+ *
+ */
 /**
  * menu item click handler
  *
@@ -642,15 +616,20 @@ $('#osmLoginToggle').click( function (e) {
  *
  */
 $('#btnHideSidebar').click( function (e) {
+
+	// hide sidebar
 	showSidebar(false);
 
 	return false;
 });
 
-
+// --- helper functions sidebar
 /**
  *
  * showSidebar
+ *
+ * - show or hide sidebar
+ * - always hide sidebar if screen width < 840 px
  *
  * @param show {boolean} -
  */
@@ -683,7 +662,7 @@ function showSidebar(show) {
  * - shows name/operator or <not defined>
  * - shows location icon if distance is measured to own location
  *     and cross icon if distance is measured from map center
- * - shows distance in m/km
+ * - shows distance in m
  *
  */
 function syncSidebar() {
@@ -704,37 +683,45 @@ function syncSidebar() {
 			overlayLayers[verbund].eachLayer(function (layer) {
 
 				var lat, lon = null;
+				var type = layer.feature.geometry.type;
+
 				// for polygons use centroid
-				if (layer.feature.geometry.type === 'Polygon') {
+				if (type === 'Polygon') {
 					var centroid = turf.centroid(layer.feature);
 					lon = centroid.geometry.coordinates[0];
 					lat = centroid.geometry.coordinates[1];
 					featureCenter = [lat, lon];
 
-				} else {
+				} else if (type === 'Point') {
+
 					featureCenter = layer.getLatLng();
 					lon = layer.feature.geometry.coordinates[0];
 					lat = layer.feature.geometry.coordinates[1];
+					featureCenter = [lat, lon];
+
+				} else {
+					featureCenter = [10, 50];
 				}
 
 				// if shown on map: show in sidebar
 				if (cashMap.getBounds().contains(featureCenter)) {
 
 					var osmTags = layer.feature.properties.tags;
+					var showText = null;
+
+					// construct table row
 					var tableRow = '<tr class="featureRow" id="' + L.stamp(layer) + '" verbund=' + verbund +
 						' lat="' + lat + '" lng="' + lon + '"><td style="vertical-align: middle;">' +
 						'<i class="fa fa-' + ((osmTags.amenity === 'bank') ? 'bank"' : 'euro"') + '></i></td>' +
 						'<td class="featureName">';
 
-					if (osmTags.amenity === 'bank') {
-						tableRow += osmTags.hasOwnProperty('name') ?
-							(osmTags.name.length > 18 ? osmTags.name.substr(0,16) + '...' : osmTags.name) :
-							'&lt;Kein Name&gt;';
-					} else {
-						tableRow += osmTags.hasOwnProperty('operator') ?
-							(osmTags.operator.length > 18 ? osmTags.operator.substr(0,16) + '...' : osmTags.operator) :
-							'&lt;Kein Operator&gt;';
-					}
+					if (osmTags.operator) 		{ showText = osmTags.operator; }
+					else if (osmTags.name) 		{ showText = osmTags.name; }
+					else if (osmTags.brand) 	{ showText = osmTags.brand; }
+
+					tableRow += showText ?
+							(showText.length > 18 ? showText.substr(0,16) + '...' : showText) :
+							'&lt;Kein Betreiber/Name&gt;';
 					tableRow += '</td>' + '<td class="featureDistance">' +
 						showDistance((myLocation ? myLocation : mapCenterLatLng), featureCenter) + '</td>' +
 						'<td style="vertical-align: middle;"><i class="fa fa-chevron-right pull-right"></i></td></tr>';
@@ -756,17 +743,23 @@ function syncSidebar() {
 
 }
 
+/*
+ *
+ * document ------------------------------------------------------------------------------------
+ *
+ */
 /**
  *
  * bind event handler <nmouseover> to document on no touch devices
  *
- * - check mouseout on sidebar row
+ * - check mouseover on sidebar row
  * - clear other highlights
- * - set highlight on marker (use attributes lat/lng from data row)
+ * - set highlight circle on marker (use attributes lat/lng from data row)
  */
 if ( !('ontouchstart' in window) ) {
 
 	$(document).on('mouseover', '.featureRow', function(e) {
+		console.log('*** document.mouseover .featureRow');
 		highlightLayer
 			.clearLayers()
 			.addLayer(L.circleMarker([$(this).attr('lat'), $(this).attr('lng')], highlightStyle));
@@ -793,12 +786,13 @@ $(document).on('mouseout', '.featureRow', clearHighlight);
  * - generate click event on marker to open feature form
  */
 $(document).on('click', '.featureRow', function(e) {
-
-	// do not move away from geolocation
-	//cashMap.setView([$(this).attr('lat'), $(this).attr('lng')], 17);
+	console.log('*** document.click .featureRow');
 
 	// preserve highlight on mouseout
 	$(document).off('mouseout', '.featureRow', clearHighlight);
+
+	// center map on selected feature
+	cashMap.setView([$(this).attr('lat'), $(this).attr('lng')], 15);
 
 	// open modal for selected feature
 	overlayLayers[$(this).attr('verbund')]
@@ -808,6 +802,11 @@ $(document).on('click', '.featureRow', function(e) {
 });
 
 
+/*
+ *
+ * Modal windows --------------------------------------------------------------------------------
+ *
+ */
 /**
  *
  * bind event handler on <hidden.bs.modal> of feature form
@@ -828,6 +827,7 @@ $('#featureModal').on('hidden.bs.modal', function (e) {
  * - de-highlight marker
  */
 function clearHighlight() {
+	console.log('*** document.mouseout .featureRow');
 
 	highlightLayer.clearLayers();
 
@@ -837,7 +837,6 @@ function clearHighlight() {
  * osmAuthModal ----------------------------------------------------------------------------------------
  *
  */
-
 /**
  * button click handler
  *
@@ -883,29 +882,25 @@ $('#newFeatureModal').on('show.bs.modal', function (e) {
  */
 $('#operatorSelect').change(function() {
 	var network = '';
-	var operator = $('#operatorSelect').find('option:selected').text();
-	if (operator.search(/sparkasse|landesbank\ berlin|bw\ bank|bw-bank|lbbw/i) > -1) {
-		network = 'Sparkassen-Finanzverbund';
-	} else if (operator.search(/Volksbank|Raiffeisen|PSD|GLS/i) > -1) {
-		network = 'BankCard-Netz (VR-Banken)';
-	} else if (operator.search(/Sparda|Targo|Santander|citibank|BBBank|Sozialwirtschaft/i) > -1) {
-		network = 'Cashpool';
-	} else if (operator.search(/Commerzbank|Deutsche\ Bank|Postbank|Norisbank|Berliner\ Bank|HypoVereinsbank/i) > -1) {
-		network = 'CashGroup';
-	} else {
-		network = 'Keiner';
-	}
 
-	// show operator input field in case of Sparkassen, Volksbanken, Andere
-	if (operator === 'Sparkassen ...' || operator === 'Volksbanken ...') {
+	var operator = $('#operatorSelect').find('option:selected').text();
+
+	if (operator.search(expSparkasse) > -1) 		{ network = 'Sparkassen-Finanzverbund';	}
+	else if (operator.search(expVRBanken) > -1) 	{ network = 'BankCard-Netz (VR-Banken)'; }
+	else if (operator.search(expCashPool) > -1) 	{ network = 'Cashpool';	}
+	else if (operator.search(expCashGroup) > -1) 	{ network = 'Cash Group'; }
+	else 											{ network = 'Keiner'; }
+
+	// show operator input field in case of Sparkassen, VR-Banken, Andere
+	if (operator === 'Sparkassen ...' || operator === 'VR-Banken ...') {
 		$("#operatorInput").html('').prop('disabled', false).attr('placeholder', 'Institutsname ...');
 	} else if (operator === 'Andere ...') {
-		$("#operatorInput").html('').prop('disabled', false).attr('placeholder', 'Betreibername ...');
+		$("#operatorInput").html('').prop('disabled', false).attr('placeholder', 'Bank/Betreiber ...');
 	} else {
 		$("#operatorInput").html('').prop('disabled', true).attr('placeholder', '');
 	}
 
-	// select network form control
+	// select network item form control
 	$('#networkSelect').val(network).attr('selected', true);
 
 	return false;
@@ -913,43 +908,36 @@ $('#operatorSelect').change(function() {
 
 
 /**
- * select box change handler for #typeOpeningSelect
+ * select box change handler for #typeOpeningSelect and #typeOpeningSelectFast
  *
  * - call handler function
  *
  * - reads opening hours type selector and shows different fields dynamically
- * - called for new feature (#typeOpeningSelect) and for existing feature (#typeFastOpeningSelect)
+ * - called for new feature (#typeOpeningSelect) and for existing feature (#typeOpeningSelectFast)
  *
  * @param e {event} 	- event object
  */
-$('#typeOpeningSelect, #typeFastOpeningSelect').change(function (e) {
-
-
+$('#typeOpeningSelect, #typeOpeningSelectFast').change(function (e) {
 	var typ = $(this).find('option:selected').val();
 
 	// check caller DOM element (#typeOpeningSelect / #typeFastOpeningSelect)
 	var fieldSuffix = ($(this)[0].id === 'typeOpeningSelect' ? '' : 'Fast');
 
+	$('#openingHoursHidden' + fieldSuffix).val('');
 	// reset created DIVs
-	$('#' + fieldSuffix + 'OpeningHoursHidden').val('');
-
-	if ($('#' + fieldSuffix + 'timeFields').length > 0) {
-		$('#' + fieldSuffix + 'timeFields').remove();
-	}
-	if ($('#' + fieldSuffix + 'ohFields').length > 0) {
-		$('#' + fieldSuffix + 'ohFields').remove();
-	}
+	$('#timeFields' + fieldSuffix).remove();
+	$('#ohFields' + fieldSuffix).remove();
 
 	// set 24/7, no dynamic fields
 	if (typ === '1') {
 
-		$('#' + fieldSuffix + 'OpeningHoursHidden').val('24/7');
+		$('#openingHoursHidden' + fieldSuffix).val('24/7');
 
 	// set Mo-Fr, create fields for slot1 and slot2, remove textual input field
 	} else if (typ === '2') {
 
 		$(this).closest('.form-group').append(
-			'<div class="form-group mt-2" id="' + fieldSuffix + 'timeFields">' +
+			'<div class="form-group mt-2" id="timeFields' + fieldSuffix + '">' +
 				'<div class="form-inline flex-row justify-content-center">' +
 					ohFieldSetAsHTML(fieldSuffix, '1') +
 				'</div>' +
@@ -962,35 +950,34 @@ $('#typeOpeningSelect, #typeFastOpeningSelect').change(function (e) {
 	} else if (typ === '3') {
 
 		$(this).closest('.form-group').append(
-			'<div class="form-group" id="' + fieldSuffix + 'ohFields">' +
+			'<div class="form-group" id="ohFields' + fieldSuffix + '">' +
 				'<small class="text-muted ml-2">' +
 					'OSM-Attribut [' +
 						'<a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:opening_hours">opening_hours</a>]' +
 				'</small>' +
-				'<input class="form-control" name="x' + fieldSuffix + 'OsmOpeningText" id="' +
-					fieldSuffix + 'osmOpeningText" type="text">' +
+				'<input class="form-control" name="xosmOpeningText' + fieldSuffix +
+					'" id="osmOpeningText' + fieldSuffix + '" type="text">' +
 			'</div>'
 		);
-
 	}
-
 });
 
 /**
  *
  * @param suffix
  * @param count
+ *
  * @returns {string} HTML String to create two opening intervals
  */
 function  ohFieldSetAsHTML (suffix, count) {
 	return (
-		'<label class="hidden-sm-down mx-3" for="' + suffix + 'fromTime' + count + '">von</label>' +
-		'<input class="form-control col-5 col-md-4" name ="x' + suffix + 'FromTime' + count + '" ' +
-		'id="' + suffix + 'fromTime' + count + '" type="time" placeholder="hh:mm">' +
-		'<label class="hidden-sm-down mx-3" for="' + suffix + 'fromTime' + count + '">bis</label>' +
-		'<label class="hidden-md-up m-0" for="' + suffix + 'fromTime' + count + '">&nbsp;-&nbsp;</label>' +
-		'<input class="form-control col-5 col-md-4" name ="x' + suffix + 'ToTime' + count + '" ' +
-		'id="' + suffix + 'toTime' + count + '" type="time" placeholder="hh:mm">'
+		'<label class="hidden-sm-down mx-3" for="' + 'fromTime' + count + suffix + '">von</label>' +
+		'<input class="form-control col-5 col-md-4" name ="x' + 'fromTime' + count + suffix + '" ' +
+		'id="' + 'fromTime' + count + suffix + '" type="time" placeholder="hh:mm">' +
+		'<label class="hidden-sm-down mx-3" for="' + 'fromTime' + count +  suffix + '">bis</label>' +
+		'<label class="hidden-md-up m-0" for="' + 'fromTime' + count + suffix + '">&nbsp;-&nbsp;</label>' +
+		'<input class="form-control col-5 col-md-4" name ="x' + 'toTime' + count + suffix + '" ' +
+		'id="' + 'toTime' + count + suffix + '" type="time" placeholder="hh:mm">'
 	);
 }
 
@@ -1000,10 +987,13 @@ function  ohFieldSetAsHTML (suffix, count) {
  */
 $('#collapseGeneral').on('hidden.bs.collapse', toggleChevron);
 $('#collapseGeneral').on('shown.bs.collapse', toggleChevron);
+
 $('#collapseAddress').on('hidden.bs.collapse', toggleChevron);
 $('#collapseAddress').on('shown.bs.collapse', toggleChevron);
+
 $('#collapseOpening').on('hidden.bs.collapse', toggleChevron);
 $('#collapseOpening').on('shown.bs.collapse', toggleChevron);
+
 $('#collapseOther').on('hidden.bs.collapse', toggleChevron);
 $('#collapseOther').on('shown.bs.collapse', toggleChevron);
 
@@ -1021,50 +1011,6 @@ function toggleChevron(e) {
 
 }
 
-
-/**
- * button click handler "Zeige Route"
- *
- * #btnRouteZuFuss - show route "Zu Fuß"
- * #btnRouteRad - show route "Mit dem Rad"
- * #btnRouteOEPNV - show route "Mit ÖPNV"
- *
- * - check for polygon, if yes, take the center (turf.centroid()) as tgt
- * - call routeToFeature with target and travelType
- *
- */
-
-$('#btnRouteZuFuss').click ( function (e) {
-
-	// get  marker from saved DOM layer object
-	var routeTargetLayer = $('#layerObj').val()[0];
-
-	// calc center (when polygon) and calc route to it
-	routeToFeature(getTargetMarker(routeTargetLayer), 'walk');
-
-});
-
-$('#btnRouteRad').click ( function (e) {
-
-	// get  marker from saved DOM layer object
-	var routeTargetLayer = $('#layerObj').val()[0];
-
-	// calc center (when polygon) and calc route to it
-	routeToFeature(getTargetMarker(routeTargetLayer), 'bike');
-
-});
-
-$('#btnRouteOEPNV').click ( function (e) {
-
-	// get  marker from saved DOM layer object
-	var routeTargetLayer = $('#layerObj').val()[0];
-
-	// calc center (when polygon) and calc route to it
-	if (!routeToFeature(getTargetMarker(routeTargetLayer), 'transit')) {
-		 showInfo('Kein &Ouml;PNV Routing verf&uuml;gbar.')
-	}
-
-});
 
 
 /**
@@ -1102,6 +1048,21 @@ $('#helpModalTabs a.nav-link')
 
 
 /**
+ * button click handler #btnCancelMoveFeature - cancel movement
+ *
+ * read marker (layer object) from DOM
+ * set marker back to old position
+ */
+$('#btnCancelMoveFeature').click( function (e) {
+
+	var marker = $('#layerObj').val()[0];
+	marker.setLatLng([
+		$('#oldLatitudeHidden').val(),
+		$('#oldLongitudeHidden').val()
+	]);
+});
+
+/**
  *
  * readFeatureDetails - read the feature details as XML
  *
@@ -1135,37 +1096,14 @@ function deleteFeature (featureId) {
 	// set header
 	$('#deleteFeatureTitle').html($('#feature-title').html() + ' l&ouml;schen');
 
-	// set osm tags for modal window
+	// set osm tags table for modal window
 	$('#delFeatureOsmTags').html($('#osmTags').html());
 
-	// store coords in DOM for deletion
-	//$('#delLatitude').val(feature.geometry.coordinates[1]);
-	//$('#delLongitude').val(feature.geometry.coordinates[0]);
-
 	// init deletion form
-	initDeleteFeatureForm(featureId);
-
-	// reset form fields and remove validator markups
-	$('#deleteFeatureForm')
-		.trigger('reset')
-		.find('.has-danger').removeClass('has-danger')
-		.find('.form-control-danger').removeClass('form-control-danger');
+	initDeleteFeatureForm();
 
 	// show modal for deletion
 	$("#deleteFeatureModal").modal('show');
-}
-
-
-/**
- * initNewFeatureForm - reset form #deleteFeatureForm
- *
- * reset form fields
- *
- */
-function initDeleteFeatureForm (featureId) {
-
-
-
 }
 
 
@@ -1203,8 +1141,7 @@ $(function () {
 	 *
 	 * #newFeatureForm - validate form fields <operator> and <comment>
 	 *
-	 *     #operatorSelect has to be filled
-	 *     if #operatorSelect = Sparkassen ...' | 'Volksbanken ...' | 'Andere ...' -> #operatorInput has to be filled
+	 *     if #operatorSelect = Sparkassen ...' | 'VR-Banken ...' | 'Andere ...' -> #operatorInput has to be filled
 	 *     #commentInput has to be filled
 	 *
 	 *     reference to fields by <name> attribut, not <id>!
@@ -1213,8 +1150,6 @@ $(function () {
 	 *     TODO inhibit ENTER on form
 	 */
 	$('#newFeatureForm').validate({
-		debug: false,
-
 		// validate fields even they are collapsed
 		ignore: false,
 
@@ -1230,43 +1165,45 @@ $(function () {
 			operator: {
 				required: true
 			},
-			name: {
-				// name required for Andere
+			specialOperator: {
+				// <specialOperator> required for Andere, Sparkassen or VR-Banken
 				required: {
 					depends: function(element) {
 						return (
-							$('#operatorSelect').filter('option:selected').text() === 'Andere ...'
+							($('#operatorSelect').find('option:selected').text() === 'Andere ...') ||
+							($('#operatorSelect').find('option:selected').text() === 'Sparkassen ...') ||
+							($('#operatorSelect').find('option:selected').text() === 'VR-Banken ...')
 						);
 					}
 				}
 			},
-			xToTime1: {
-				// toTime 1 required when fromTime 1 filled
+			xtoTime1: {
+				// <toTime 1> required when fromTime 1 filled
 				required: {
 					depends: function (element) {
-						return ($('#xFromTime1').length > 0);
+						return ($('#xfromTime1').length > 0);
 					}
 				}
 			},
-			xToTime2: {
+			xtoTime2: {
 				// toTime 2 required when fromTime 2 filled
 				required: {
 					depends: function (element) {
-						return ($('#xFromTime2').length > 0);
+						return ($('#xfromTime2').length > 0);
 					}
 				}
 			},
-			xOsmOpeningText: {
+			xosmOpeningText: {
 				// opening_hours required for type "Eingabe"
 				required: {
 					depends: function(element) {
-						return ($('#typeOpeningSelect').filter('option:selected').val() === '3');
+						return ($('#typeOpeningSelect').find('option:selected').val() === '3');
 					}
 				},
 				// check the string
 				validateOpeningHours: true
 			},
-			xComment: {
+			xcomment: {
 				required: true
 			}
 		},
@@ -1274,39 +1211,27 @@ $(function () {
 		/**
 		 * highlight: apply error marking
 		 *
-		 * apply bootstrap 4 validation classes
-		 *
-		 * @param element
 		 */
 		highlight: function(element) {
-
-			$(element).parent().addClass('has-danger');
+			$(element).closest('.form-group, .form-inline').addClass('has-danger');
 			$(element).addClass('form-control-danger');
 		},
 
 		/**
 		 * unhighlight: delete error marking
-		 *
-		 * remove bootstarp 4 validation classes
-		 *
-		 * @param element
 		 */
 		unhighlight: function(element) {
-
-			$(element).parent().removeClass('has-danger');
+			$(element).closest('.has-danger').removeClass('has-danger');
 			$(element).removeClass('form-control-danger');
 		},
 
 		/**
 		 * errorPlacement - define how to show validation error message
 		 *
-		 * show message only for field <xOsmOpeningText> (created by opening_hours lib)
-		 *
-		 * @param error
-		 * @param element
+		 * show message only for field <xosmOpeningText> (created by opening_hours lib)
 		 */
 		errorPlacement: function(error, element) {
-			if (element.attr('name') === 'xOsmOpeningText') {
+			if (element.attr('name') === 'xosmOpeningText') {
 				error.appendTo( element.parent() );
 			}
 		},
@@ -1317,7 +1242,7 @@ $(function () {
 		 * creates opening hours string from Mo-Fr timeslots (if filled) and fill hidden field
 		 * fill hidden field with opening hours string
 		 * converts additional tag fields into key/value pairs
-		 * calls creatikon of new changeset
+		 * calls creation of new changeset
 		 * closes form
 		 *
 		 * @param form
@@ -1330,12 +1255,12 @@ $(function () {
 				if ($('#fromTime2').val() !== '') {
 					openingHours += ',' + $('#fromTime2').val() + '-' + $('#toTime2').val();
 				}
-				$("#OpeningHoursHidden").val(openingHours);
+				$("#openingHoursHidden").val(openingHours);
 			}
 
 			// set hidden <opening_hours> field from text field
 			if ($('#osmOpeningText').length > 0) {
-				$("#OpeningHoursHidden").val($('#osmOpeningText').val());
+				$("#openingHoursHidden").val($('#osmOpeningText').val());
 			}
 
 			// convert additional tag/value pairs, mark with class addTagField to remove on initForm
@@ -1384,8 +1309,6 @@ $(function () {
 	 *     TODO inhibit ENTER on form
 	 */
 	$('#deleteFeatureForm').validate({
-		debug: true,
-
 		// do not validate on focusout
 		onfocusout: false,
 
@@ -1394,7 +1317,7 @@ $(function () {
 
 		// validation rules per field
 		rules: {
-			comment: {
+			xcomment: {
 				required: true
 			}
 		},
@@ -1407,8 +1330,7 @@ $(function () {
 		 * @param element
 		 */
 		highlight: function(element) {
-
-			$(element).parent().addClass('has-danger');
+			$(element).closest('.form-group, .form-inline').addClass('has-danger');
 			$(element).addClass('form-control-danger');
 		},
 
@@ -1421,7 +1343,7 @@ $(function () {
 		 */
 		unhighlight: function(element) {
 
-			$(element).parent().removeClass('has-danger');
+			$(element).closest('.has-danger').removeClass('has-danger');
 			$(element).removeClass('form-control-danger');
 		},
 
@@ -1466,8 +1388,6 @@ $(function () {
 	 */
 
 	$('#newFastOpeningForm').validate({
-		debug: true,
-
 		// do not validate on focusout
 		onfocusout: false,
 
@@ -1476,34 +1396,24 @@ $(function () {
 
 		// validation rules per field
 		rules: {
-			xFastToTime1: {
-				// toTime 1 required when fromTime 1 filled
-				required: {
-					depends: function (element) {						return ($('#xFastFromTime1').length > 0);
-					}
-				}
-			},
-			xFastToTime2: {
+			xtypeOpeningFast: 	{ required: true },
+			xfromTime1Fast: 	{ required: true },
+			xtoTime1Fast: 		{ required: true },
+			xtoTime2Fast: {
 				// toTime 2 required when fromTime 2 filled
-				required: {
-					depends: function (element) {
-						return ($('#xFastFromTime2').length > 0);
-					}
-				}
+				required: { depends: function (element) { return ($('#fromTime2Fast').val() !== ''); }}
 			},
-			xFastOsmOpeningText: {
+			xosmOpeningTextFast: {
 				// opening_hours required for type "Direkteingabe"
 				required: {
 					depends: function(element) {
-						return ($('#typeFastOpeningSelect').filter('option:selected').val() === '3');
+						return ($('#typeOpeningSelectFast').find('option:selected').val() === '3');
 					}
 				},
 				// check the string via validation method "validateOpeningHours"
 				validateOpeningHours: true
 			},
-			xFastComment: {
-				required: true
-			}
+			xcomment: 			{ required: true }
 		},
 
 		/**
@@ -1514,8 +1424,7 @@ $(function () {
 		 * @param element
 		 */
 		highlight: function(element) {
-
-			$(element).parent().addClass('has-danger');
+			$(element).closest('.form-group, .form-inline').addClass('has-danger');
 			$(element).addClass('form-control-danger');
 		},
 
@@ -1527,20 +1436,18 @@ $(function () {
 		 * @param element
 		 */
 		unhighlight: function(element) {
-
-			$(element).parent().removeClass('has-danger');
+			$(element).closest('.has-danger').removeClass('has-danger');
 			$(element).removeClass('form-control-danger');
 		},
 
 		/**
 		 * errorPlacement - define how to show validation error message
-
 		 *
 		 * @param error
 		 * @param element
 		 */
 		errorPlacement: function(error, element) {
-			if (element.attr('name') === 'xFastOsmOpeningText') {
+			if (element.attr('name') === 'xosmOpeningTextFast') {
 				error.appendTo( element.parent() );
 			}
 		},
@@ -1556,28 +1463,103 @@ $(function () {
 		submitHandler: function (form) {
 
 			// set hidden <opening_hours> field from time fields
-			if ($('#FasttimeFields').length > 0) {
-				var openingHours = 'Mo-Fr ' + $('#FastfromTime1').val() + '-' + $('#FasttoTime1').val();
-				if ($('#FastfromTime2').val() !== '') {
-					openingHours += ',' + $('#FastfromTime2').val() + '-' + $('#FasttoTime2').val();
+			if ($('#timeFieldsFast').length > 0) {
+				var openingHours = 'Mo-Fr ' + $('#fromTime1Fast').val() + '-' + $('#toTime1Fast').val();
+				if ($('#fromTime2Fast').val() !== '') {
+					openingHours += ',' + $('#fromTime2Fast').val() + '-' + $('#toTime2Fast').val();
 				}
-				$('#FastOpeningHoursHidden').val(openingHours);
+				$('#openingHoursHiddenFast').val(openingHours);
 
 			}
 
 			// set hidden <opening_hours> field from text field
-			if ($('#FastosmOpeningText').length > 0) {
-				$("#FastOpeningHoursHidden").val($('#FastosmOpeningText').val());
+			if ($('#osmOpeningTextFast').length > 0) {
+				$("#openingHoursHiddenFast").val($('#osmOpeningTextFast').val());
 			}
 
 			// write data to osm database
-			createChangeset( $("#FastOHCommentInput").val(), $('#featureId').val(), uploadModification );
+			createChangeset( $('#OhCommentInputFast').val(), $('#featureId').val(), uploadModification );
 
 			$("#newFastOpeningModal").modal('hide');
 		}
 
 	}); // $('#newFastOpeningForm').validate()
 
+
+	/**
+	 * form validation for #delFeatureForm
+	 *
+	 * #moveFeatureForm - validate  <comment>
+	 *
+	 *     #commentMove has to be filled
+	 *
+	 *     reference to fields by <name> attribut, not <id>!
+	 *     empty function <errorPlacement> hides standard error messages
+	 *
+	 *     TODO inhibit ENTER on form
+	 */
+	$('#moveFeatureForm').validate({
+		// do not validate on focusout
+		onfocusout: false,
+
+		// do not validate on keyup
+		onkeyup: false,
+
+		// validation rules per field
+		rules: {
+			xcomment: 	{ required: true }
+		},
+
+		/**
+		 * highlight: apply error marking
+		 *
+		 * apply bootstrap 4 validation classes
+		 *
+		 * @param element
+		 */
+		highlight: function(element) {
+			$(element).closest('.form-group, .form-inline').addClass('has-danger');
+			$(element).addClass('form-control-danger');
+		},
+
+		/**
+		 * unhighlight: delete error marking
+		 *
+		 * remove bootstarp 4 validation classes
+		 *
+		 * @param element
+		 */
+		unhighlight: function(element) {
+			$(element).closest('.has-danger').removeClass('has-danger');
+			$(element).removeClass('form-control-danger');
+		},
+
+		/**
+		 * errorPlacement - define how to show validation error message
+		 *
+		 * @param error
+		 * @param element
+		 */
+		errorPlacement: function(error, element) {
+		},
+
+		/**
+		 * function to be called on form submit
+		 *
+		 * calls creation of new changeset
+		 * closes form
+		 *
+		 * @param form
+		 */
+		submitHandler: function (form) {
+
+			// write data to osm database
+			createChangeset( $('#commentMove').val(), $('#featureId').val(), uploadMove, cashMapAuth );
+
+			$("#moveFeatureModal").modal('hide');
+		}
+
+	}); // $('#moveFeatureForm').validate()
 
 	/**
 	 * defines validation method "validateOpeningHours"
@@ -1628,7 +1610,7 @@ function getOpeningHoursError (ohString) {
 }
 
 
-// functions ---------------------------------------------------------------------------------------
+// helper functions ---------------------------------------------------------------------------------------
 /**
  * getOsmUser - Calls the OSM API to get the logged in user details as xml
  *
@@ -1647,6 +1629,7 @@ function getOsmUser () {
 			if (err) {
 
 				srvLog ('auth error: '  + err);
+
 			} else {
 
 				$('#osmUser').html(details.getElementsByTagName('user')[0].getAttribute("display_name"));
@@ -1682,6 +1665,7 @@ function showDistance (loc, featurePos) {
 		formatDistance(loc.distanceTo(featurePos)));
 }
 
+
 /**
  *
  * @param distMeter - distance in meters
@@ -1693,6 +1677,7 @@ function formatDistance (distMeter) {
 
 }
 
+
 /**
  *
  * @param timeSec - duration in seconds
@@ -1702,7 +1687,6 @@ function formatDistance (distMeter) {
 function formatTime (timeSec) {
 	var hour = Math.floor( timeSec / 3600 );
 	var min = Math.floor( (timeSec%3600) / 60 );
-	var sec = Math.floor( timeSec%60 );
 
 	if (hour !== 0) {
 		return (hour + ':' + min + ' h');
@@ -1727,6 +1711,7 @@ $('#btnDangerClose').click (function () {
 function showInfo(text) {
 	$('#infoAlertText').html(text);
 	$('#infoAlert').removeClass('invisible');
+	setTimeout(hideInfo, 3000);
 }
 function hideInfo() {
 	$('#infoAlertText').html('');
@@ -1814,7 +1799,6 @@ function getRoutingArea (src, tgt) {
 	var tgtEndpoint 	= null;
 	var results 		= [];
 	var hasTransit 		= false;
-	var featureCenter 	= null;
 
 	if (routingAvailable) {
 		routingRegions.forEach(function (region) {
@@ -2038,7 +2022,7 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 						{'locale': 'de'});
 					ohDefined = (oh.getWarnings().length === 0);
 				} catch (err){
-					srvLog('pointToLayer/opening_hours err: ' + feature.id + '/' + err);
+
 				}
 			}
 
@@ -2060,6 +2044,7 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 							svgPathDescription: 'M16,1 C7.7146,1 1,7.65636364 1,15.8648485 C1,24.0760606 16,51 16,51 C16,51 31,24.0760606 31,15.8648485 C31,7.65636364 24.2815,1 16,1 L16,1 Z'
 						}),
 					riseOnHover: true,
+					draggable: true,
 					title: featureTitle
 				}
 			);
@@ -2151,7 +2136,7 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 
 						ohValid = (oh.getWarnings().length === 0);
 					} catch (err) {
-						srvLog('onEachFeature/opening_hours err: ' + feature.id + '/' + err)
+						srvLog('opening_hours err: ' + feature.id + '/' + err)
 					}
 
 					// fill table via SimpleOpeningHours
@@ -2178,7 +2163,12 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 						});
 						openingTable += "</table>";
 					} else {
-						openingTable += '<p>Erfasste &Ouml;ffnungszeit ung&uuml;ltig oder nicht tabellarisch darstellbar.</p>';
+						openingTable =
+							'<div class="d-flex flex-column flex-sm-row justify-content-center">' +
+								'<span class="align-middle my-2 mr-4">Erfasste &Ouml;ffnungszeit ist ung&uuml;ltig.</span>' +
+								'<button type="button" class="btn btn-outline-secondary" id="btnEditOpeningHours">' +
+								'Jetzt korrigieren</button>' +
+							'</div>';
 					}
 
 				// [opening_hours] not defined, show button to enter
@@ -2188,27 +2178,126 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 						'<a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:opening_hours">opening_hours</a>' +
 						']) nicht erfasst.</i></p>';
 
-
-					openingTable = '<span>Keine &Ouml;ffnungszeit erfasst.&nbsp;&nbsp;</span>' +
-						'<button type="button" class="btn btn-outline-secondary w-100" id="btnEditOpeningHours">' +
-						'Jetzt erfassen</button>';
+					openingTable =
+						'<div class="d-flex flex-column flex-sm-row justify-content-center">' +
+							'<span class="align-middle my-2 mr-4">Keine &Ouml;ffnungszeit erfasst.</span>' +
+							'<button type="button" class="btn btn-outline-secondary" id="btnEditOpeningHours">' +
+							'Jetzt erfassen</button>' +
+						'</div>';
 				}
 
 				// Modal Tab OSM Info füllen
 				var osmTagTable = buildOsmTagsTable(feature);
 
 				/**
-				 * mouse left click handler for marker
+				 * event handler for end of marker drag
 				 *
 				 * - fill DOM elements
 				 * - read feature details as XML
 				 */
+				layer.on('dragstart', function (e) {
+					console.log('*** layer.dragstart');
+
+					clearHighlight();
+
+					// save old position
+					$('#oldLongitudeHidden').val(e.target.feature.geometry.coordinates[0]);
+					$('#oldLatitudeHidden').val(e.target.feature.geometry.coordinates[1]);
+
+					// marker opaque, show popup not closeable
+					layer.setOpacity(0.7)
+						.bindPopup('Objekt an neue Position verschieben', {closeButton: false})
+						.addTo(cashMap);
+					layer.openPopup();
+
+				});
+
+				/**
+				 * event handler for end of marker drag ('dragend')
+				 *
+				 * - fill DOM elements
+				 * - read feature details as XML
+				 * - set form details
+				 * - reverse geocode address
+				 *  - open dialog form
+				 */
+				layer.on('dragend', function (e) {
+					console.log('*** layer.dragend');
+
+					var feat = e.target.feature;
+					var coord = e.target._latlng;
+
+					layer.closePopup().unbindPopup().setOpacity(1);
+
+					// store feature object
+					$('#featureId').val(feat.id);
+					$('#featureObj').val(feat);
+
+					// store layer object (marker/polygon)
+					$('#layerObj').val($(this));
+
+					// read feature details with API 0.6 and store as XML in #featureXML
+					readFeatureDetailsAsXML(feat.id);
+
+					$('#moveFeatureTitle').html('Standort korrigieren');
+					//$('#moveFeatureTitle').html((feat.properties.tags.amenity === "bank" ? "Bankfiliale" : "Geldautomat") +
+					//	' verschieben');
+
+					// save new position in DOM for changeset
+
+					$('#newLongitudeHidden').val(coord.lng);
+					$('#newLatitudeHidden').val(coord.lat);
+
+					initMoveFeatureForm();
+
+					// reverse geocode address and fill new address fields
+					cashMapGeoCoderProvider.reverse(
+						coord,
+						cashMap.options.crs.scale(cashMap.getZoom()),
+						function(results) {
+
+							if (results.length > 0) {
+
+								results[0].properties.forEach(function (value) {
+									if (value.types[0]) {
+										if (value.types[0] === 'route') {
+											$('#newStreetInput').val(value.long_name);
+										} else if (value.types[0] === 'street_number') {
+											$('#newNumberInput').val(value.long_name);
+										} else if (value.types[0] === 'postal_code') {
+											$('#newPostcodeInput').val(value.long_name);
+										} else if (value.types[0] === 'locality') {
+											$('#newCityInput').val(value.long_name);
+										} else if (value.types[0] === 'country') {
+											$('#newCountryInput').val(value.short_name);
+											$('#newCountryLong').val(value.long_name)
+										}
+									}
+								});
+							} else {
+
+								// TODO Hinweis, das Adresse nicht ermittelt wurde
+								srvLog('reverse geocoding error: ' + feat.id + ' - ' +
+									coord.lat + '/' + coord.lng);
+							}
+						}
+					);
+
+					$('#moveFeatureModal').modal('show');
+				});
+
+				/**
+				 * mouse left click handler for marker ('click')
+				 *
+				 * - fill DOM elements
+				 * - read feature details as XML and store in DOM
+				 */
 				layer.on('click', function (e) {
+					console.log('*** layer. click');
 
 					// hidden fields
 					// store feature object
 					$('#featureId').val(feature.id);
-
 					$('#featureObj').val(feature);
 
 					// store layer object (marker/polygon) for routing
@@ -2238,6 +2327,9 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 						// close current modal
 						$("#featureModal").modal('hide');
 
+						// init form for editing opening hours
+						initNewFastOpeningForm ();
+
 						// open modal #newFastOpeningModal
 						$("#newFastOpeningModal").modal('show');
 					});
@@ -2251,8 +2343,9 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 
 					$("#featureModal").modal('show');
 				});
+
 				/**
-				 * leaflet layer event handler for 'contextmenu'
+				 * event handler for 'contextmenu'
 				 *
 				 * - do not propagate contextmenu event to map
 				 */
@@ -2265,6 +2358,7 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 	})
 }
 
+
 /**
  * initNewFeatureForm - reset form #newFeatureForm
  *
@@ -2276,12 +2370,14 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
  *
  */
 function initNewFeatureForm () {
+	var form = $('#newFeatureForm');
 
 	// remove dynamically created fields for opening hours
-	if ($('#timeFields').length > 0) { $('#timeFields').remove(); }
-	if ($('#ohFields').length > 0) { $('#ohFields').remove(); }
+	$('#timeFields').remove();
+	$('#ohFields').remove();
 
 	// remove dynamically created hidden fields for additional tags
+	// TODO check jQuery filter vs. find for array removal
 	$('#collapseOthers').find('.addTagField').remove();
 
 	// disable operator field and delete placeholder
@@ -2300,48 +2396,114 @@ function initNewFeatureForm () {
 		.find('i.indicator').addClass('fa-chevron-down').removeClass('fa-chevron-up');
 
 	// reset form fields and remove validator markups
-	$('#newFeatureForm')
-		.trigger('reset')
-		.find('.has-danger').removeClass('has-danger')
-		.find('.form-control-danger').removeClass('form-control-danger');
+	form.trigger('reset');
+	form.find('.has-danger').removeClass('has-danger');
+	form.find('.form-control-danger').removeClass('form-control-danger');
 
+}
+
+/**
+ *
+ * initNewFastOpeningForm - reset form #newFastOpeningForm
+ *
+ * reset/clear form fields
+ * remove bootstrap error classes
+
+ */
+function initNewFastOpeningForm () {
+	var form = $('#newFastOpeningForm');
+
+	// remove dynamically created fields for opening hours
+	$('#ohFieldsFast').remove();
+
+	// reset form fields and remove validator markups
+	form.trigger('reset');
+	form.find('.has-danger').removeClass('has-danger');
+	form.find('.form-control-danger').removeClass('form-control-danger');
+	form.find('.error').remove();
+
+}
+
+/**
+ * initMoveFeatureForm - reset form #moveFeatureForm
+ *
+ * reset/clear form fields
+ * remove bootstrap error classes
+ *
+ * */
+function initMoveFeatureForm () {
+	var form = $('#moveFeatureForm');
+
+	// reset form fields and remove validator markups
+	form.trigger('reset');
+	form.find('.has-danger').removeClass('has-danger');
+	form.find('.form-control-danger').removeClass('form-control-danger');
 }
 
 
 /**
+ * initDeleteFeatureForm - reset form #deleteFeatureForm
  *
- * showTravelTime - show/hide cloud with travel time of 10 mins (walk)
+ * reset form fields
  *
  */
-/*
-function showTravelTime (show) {
+function initDeleteFeatureForm () {
+	var form = $('#deleteFeatureForm');
 
-	if (show) {
-		travelTimeSrcMarker = L.circleMarker(
-			cashMap.getCenter(),
-			{radius: 2}
-			).addTo(cashMap);
+	// reset form fields and remove validator markups
+	form.trigger('reset');
+	form.find('.has-danger').removeClass('has-danger');
+	form.find('.form-control-danger').removeClass('form-control-danger');
 
-		// we only have one source which is the marker we just added
-		travelTimeOptions.addSource(travelTimeSrcMarker);
-
-		r360.PolygonService.getTravelTimePolygons(travelTimeOptions, function(polygons){
-
-			travelTimeCloudLayer.setColors([{
-				'time': 600,
-				'color': '#78C2AD'
-			} ]);
-			// add the returned polygons to the polygon layer
-			// and zoom the map to fit the polygons perfectly
-			travelTimeCloudLayer.clearAndAddLayers(polygons, true);
-		});
-	} else {
-		travelTimeCloudLayer.clearLayers();
-		cashMap.removeLayer(travelTimeSrcMarker);
-		travelTimeSrcMarker = L.geoJSON(null);
-	}
 }
-*/
+
+
+//============================  Routing ======================================================
+/**
+ * button click handler "Zeige Route"
+ *
+ * #btnRouteZuFuss - show route "Zu Fuß"
+ * #btnRouteRad - show route "Mit dem Rad"
+ * #btnRouteOEPNV - show route "Mit ÖPNV"
+ *
+ * - check for polygon, if yes, take the center (turf.centroid()) as tgt
+ * - call routeToFeature with target and travelType
+ *
+ */
+
+$('#btnRouteZuFuss').click ( function (e) {
+
+	// get  marker from saved DOM layer object
+	var routeTargetLayer = $('#layerObj').val()[0];
+
+	// calc center (when polygon) and calc route to it
+	routeToFeature(getTargetMarker(routeTargetLayer), 'walk');
+
+});
+
+$('#btnRouteRad').click ( function (e) {
+
+	// get  marker from saved DOM layer object
+	var routeTargetLayer = $('#layerObj').val()[0];
+
+	// calc center (when polygon) and calc route to it
+	routeToFeature(getTargetMarker(routeTargetLayer), 'bike');
+
+});
+
+$('#btnRouteOEPNV').click ( function (e) {
+
+	// get  marker from saved DOM layer object
+	var routeTargetLayer = $('#layerObj').val()[0];
+
+	// calc center (when polygon) and calc route to it
+	// show info when public transport routing is not available
+	if (!routeToFeature(getTargetMarker(routeTargetLayer), 'transit')) {
+		showInfo('Kein &Ouml;PNV Routing verf&uuml;gbar.')
+	}
+
+});
+
 
 /**
  *
@@ -2391,7 +2553,7 @@ function routeToFeature (routeTargetMarker, travelType) {
 	}
 
 	routeSrcMarker.bindPopup('Ziehe den Marker ggf. zur gew&uuml;nschten Start-Position.')
-	.addTo(cashMap);
+		.addTo(cashMap);
 
 	// delete blue circle marker on dragstart
 	routeSrcMarker.on('dragstart', function (event) {
@@ -2568,63 +2730,8 @@ $('#cashMap').on('click', '.routePopupBtnDelete', function() {
 
 });
 
-/**
- *
- * editNewMarker - show form to create new feature
- *
- * 		initialize form
- *  	check if authenticated to OSM
- * 		reverse geocode address of click position (provider: google)
- * 		set compact address info from result set
- * 		set address form fields from result set
- * 		show edit form
- *
- * @param markerLatLon - coordinates of marker
- */
-function editNewMarker (markerLatLon) {
 
-	if (!cashMapAuth.authenticated()) {
 
-		$("#osmAuthInfoModal").modal('show');
-
-	} else {
-
-		getOsmUser();
-
-		// reverse geocode address and fill address fields
-		cashMapGeoCoderProvider.reverse( markerLatLon,
-			cashMap.options.crs.scale(cashMap.getZoom()),
-			function(results) {
-				// set coords in hidden form fields
-				$('#latitudeHidden').val(markerLatLon.lat.toFixed(6));
-				$('#longitudeHidden').val(markerLatLon.lng.toFixed(6));
-
-				results[0].properties.forEach(function (value) {
-					if (value.types[0]) {
-						if (value.types[0] === 'route') {
-							$('#streetInput').val(value.long_name);
-						} else if (value.types[0] === 'street_number') {
-							$('#numberInput').val(value.long_name);
-						} else if (value.types[0] === 'postal_code') {
-							$('#postcodeInput').val(value.long_name);
-						} else if (value.types[0] === 'locality') {
-							$('#cityInput').val(value.long_name);
-						} else if (value.types[0] === 'country') {
-							$('#countryInput').val(value.short_name);
-							$('#countryLong').val(value.long_name)
-						}
-					}
-				});
-
-			}
-		);
-
-		// TODO preserve new marker
-		if (cashMap.hasLayer(newMarkerLayer)) { cashMap.removeLayer(newMarkerLayer);}
-
-		$("#newFeatureModal").modal('show');
-	}
-}
 
 /**
  *
@@ -2760,6 +2867,8 @@ function clearAtmLayersAndRoutes (map) {
 	})
 }
 
+
+//======================== Helper functions =============================================
 /**
  *
  * getTargetMarker - computes center if layer is polygon, else return layer
@@ -2807,7 +2916,6 @@ function buildOsmTagsTable (feature) {
 }
 
 
-
 /**
  *
  * atmInNetwork - check if feature belongs to atm pool <name>
@@ -2821,11 +2929,13 @@ function atmInNetwork (feature, network) {
 	return (getAtmNetwork(feature) === network);
 }
 
+
 /**
  *
  * getAtmNetwork - returns atm pool the feature is belonging to
  *
  * @param {L.feature} feature - feature to be checked
+ *
  * @returns {string} - atm pool:  "sparkasse"|"vrbanken"|"cashgroup"|"cashpool"|'keiner'
  */
 function getAtmNetwork (feature) {
@@ -2833,16 +2943,16 @@ function getAtmNetwork (feature) {
 	var network = feature.properties.tags.network;
 	var operator = feature.properties.tags.operator;
 	var name = feature.properties.tags.name;
+	var brand = feature.properties.tags.brand;
 	var featureCenter = null;
 
+	// calc center point and check if in Germany
 	if (feature.geometry.type === 'Polygon') {
 		var centroid = turf.centroid(feature);
 		featureCenter = [centroid.geometry.coordinates[0], centroid.geometry.coordinates[1]];
-
 	} else {
 		featureCenter = [feature.geometry.coordinates[0], feature.geometry.coordinates[1]];
 	}
-
 	// outside Germany no networks
 	if (leafletPip.pointInLayer(featureCenter, borderLayer, true).length === 0) {
 		return('keiner');
@@ -2851,52 +2961,48 @@ function getAtmNetwork (feature) {
 	// 1st check: [network]
 	if (network) {
 
-		if (network.search(/sparkasse|landesbank/i) > -1) { return "sparkassen";}
-		if (network.search(/BankCard|Genossenschaft/i) > -1) { return "vrbanken";}
-		if (network.search(/cashpool/i) > -1) { return "cashpool";}
-		if (network.search(/cash\ group|cashgroup/i) > -1) { return "cashgroup";}
+		if (network.search(/sparkasse|landesbank/i) > -1) 		{ return "sparkassen";}
+		if (network.search(/BankCard|Genossenschaft/i) > -1) 	{ return "vrbanken";}
+		if (network.search(/cashpool/i) > -1) 					{ return "cashpool";}
+		if (network.search(/cash\ group|cashgroup/i) > -1) 		{ return "cashgroup";}
 		return 'keiner';
 
 	} else {
 		// 2nd check: [operator]
 		if (operator) {
-			if (operator.search(/sparkasse|landesbank\ berlin|bw\ bank|bw-bank|lbbw/i) > -1) {
-				return "sparkassen";
-			}
-			if (operator.search(/Volksbank|Raiffeisen|PSD|GLS/i) > -1) {
-				return "vrbanken";
-			}
-			if (operator.search(/Sparda|Targo|Santander|citibank|BBBank|Sozialwirtschaft/i) > -1) {
-				return "cashpool";
-			}
-			if (operator.search(/Commerzbank|Deutsche\ Bank|Postbank|Norisbank|Berliner\ Bank|HypoVereinsbank/i) > -1) {
-				return "cashgroup";
-			}
+			if (operator.search(expSparkasse) > -1) 	{ return "sparkassen";}
+			if (operator.search(expVRBanken) > -1) 		{ return "vrbanken";}
+			if (operator.search(expCashPool) > -1) 		{ return "cashpool";}
+			if (operator.search(expCashGroup) > -1) 	{ return "cashgroup";}
 			return 'keiner';
 
 		} else {
 			// 3rd check: [name]
 			if (name) {
-				if (name.search(/sparkasse|landesbank\ berlin|bw\ bank|bw-bank|lbbw/i) > -1) {
-					return "sparkassen";
-				}
-				if (name.search(/Volksbank|Raiffeisen|PSD|GLS/i) > -1) {
-					return "vrbanken";
-				}
-				if (name.search(/Sparda|Targo|Santander|citibank|BBBank|Sozialwirtschaft/i) > -1) {
-					return "cashpool";
-				}
-				if (name.search(/Commerzbank|Deutsche\ Bank|Postbank|Norisbank|Berliner\ Bank|HypoVereinsbank/i) > -1) {
-					return "cashgroup";
-				}
+				if (name.search(expSparkasse) > -1) 	{ return "sparkassen";}
+				if (name.search(expVRBanken) > -1) 		{ return "vrbanken";}
+				if (name.search(expCashPool) > -1) 		{ return "cashpool";}
+				if (name.search(expCashGroup) > -1) 	{ return "cashgroup";}
 				return 'keiner';
+
 			} else {
-				return 'keiner';
+				// 4th check: [brand]
+				if (brand) {
+					if (brand.search(expSparkasse) > -1) 	{ return "sparkassen";}
+					if (brand.search(expVRBanken) > -1) 	{ return "vrbanken";}
+					if (brand.search(expCashPool) > -1) 	{ return "cashpool";}
+					if (brand.search(expCashGroup) > -1) 	{ return "cashgroup";}
+					return 'keiner';
+
+				} else {
+					return 'keiner';
+				}
 			}
 		}
 	}
 }
 
+//========================= New Feature ================================================
 /**
  * context menu item handler
  *
@@ -2944,9 +3050,18 @@ function createNewMarker (markerLatLon) {
 	/**
 	 * event handler for dragend
 	 * - show help text popup
+	 * - remove marker on popup close
 	 */
 	newMarkerLayer.on('dragend', function (e) {
-		newMarkerLayer.openPopup();
+		console.log('*** newMarkerLayer.dragend');
+
+		newMarkerLayer.openPopup().on('popupclose', function (e) {
+			console.log('*** newMarkerLayer.popup.dragend');
+
+			if (cashMap.hasLayer(newMarkerLayer)) {
+				cashMap.removeLayer(newMarkerLayer);
+			}
+		});
 	});
 
 	/**
@@ -2955,6 +3070,8 @@ function createNewMarker (markerLatLon) {
 	 * - show edit form
  	 */
 	newMarkerLayer.on('click', function (e) {
+		console.log('*** newMarkerLayer.click');
+
 		newMarkerLayer.closePopup();
 		editNewMarker(newMarkerLayer.getLatLng());
 	});
@@ -2964,9 +3081,76 @@ function createNewMarker (markerLatLon) {
 	 * - do not propagate context menu event to map
  	 */
 	newMarkerLayer.on('contextmenu', function (e) {
+
+		console.log('*** newMarkerLayer.contextmenu');
+
 		return false;
 	});
 }
+
+
+
+/**
+ *
+ * editNewMarker - show form to create new feature
+ *
+ * 		initialize form
+ *  	check if authenticated to OSM
+ * 		reverse geocode address of click position (provider: google)
+ * 		set compact address info from result set
+ * 		set address form fields from result set
+ * 		show edit form
+ *
+ * @param markerLatLon - coordinates of marker
+ */
+function editNewMarker (markerLatLon) {
+
+	// check authorisation
+	if (!cashMapAuth.authenticated()) {
+
+		$("#osmAuthInfoModal").modal('show');
+
+	} else {
+
+		// show user name on menu
+		getOsmUser();
+
+		// set coords in hidden form fields
+		$('#latitudeHidden').val(markerLatLon.lat.toFixed(6));
+		$('#longitudeHidden').val(markerLatLon.lng.toFixed(6));
+
+		// reverse geocode address and fill address fields
+		cashMapGeoCoderProvider.reverse( markerLatLon,
+			cashMap.options.crs.scale(cashMap.getZoom()),
+			function(results) {
+
+				results[0].properties.forEach(function (value) {
+					if (value.types[0]) {
+						if (value.types[0] === 'route') {
+							$('#streetInput').val(value.long_name);
+						} else if (value.types[0] === 'street_number') {
+							$('#numberInput').val(value.long_name);
+						} else if (value.types[0] === 'postal_code') {
+							$('#postcodeInput').val(value.long_name);
+						} else if (value.types[0] === 'locality') {
+							$('#cityInput').val(value.long_name);
+						} else if (value.types[0] === 'country') {
+							$('#countryInput').val(value.short_name);
+							$('#countryLong').val(value.long_name)
+						}
+					}
+				});
+
+			}
+		);
+
+		// delete new marker from map
+		if (cashMap.hasLayer(newMarkerLayer)) { cashMap.removeLayer(newMarkerLayer);}
+
+		$("#newFeatureModal").modal('show');
+	}
+}
+
 
 /**
  *
@@ -3007,6 +3191,7 @@ function showAddress (e) {
 }
 
 
+//===================================== changeset handling =================================
 /**
  *
  *  createChangeset - create OSM changeset
@@ -3017,8 +3202,8 @@ function showAddress (e) {
  *
  * @param {string} comment		- changeset comment
  * @param {string} featureId 	- OSM Id (<node|way>/<osm-id>)
- * @param {function} callback 	- function to be called to upload node (delete/upload)
- * @param {object} authObj		- authentication object
+ * @param {function} callback 	- function to be called to upload node (delete/upload/modify)
+ * @param {object} authObj		- authentication object (empty fpr basic authentication)
  */
 function createChangeset (comment, featureId, callback, authObj) {
 
@@ -3095,7 +3280,7 @@ function uploadCreation (changesetId) {
 
 		// create array of key/value pairs from all form input fields and iterate
 		$.each($("#newFeatureForm").serializeArray(), function (index, tag) {
-			srvLog (index + ' - ' + tag.name + ' : ' + tag.value);
+			srvLog (tag.name + ' : ' + tag.value);
 
 			if (tag.name === 'osmId') {
 
@@ -3118,10 +3303,9 @@ function uploadCreation (changesetId) {
 						// set <name> tag to general bank name
 						xmlString += "<tag k='name' v='Sparkasse'/>";
 
-					} else if (tag.name === 'operator' && tag.value === 'Volksbanken ...') {
+					} else if (tag.name === 'operator' && tag.value === 'VR-Banken ...') {
 						// set <name> tag to general bank name
 						xmlString += "<tag k='name' v='VR-Bank'/>";
-
 
 					} else if (tag.name === 'specialOperator') {
 						// take special operator value as <operator> tag
@@ -3170,6 +3354,7 @@ function uploadCreation (changesetId) {
 				}, function (err) {
 					if (err) {
 
+						srvLog('error uploading node: ' + err);
 						showError('Fehler beim Hochladen zum OSM-Server, bitte wiederholen.');
 
 					} else {
@@ -3215,11 +3400,17 @@ function uploadModification (changesetId, featureId) {
 
 		// add existing keys
 		Object.keys(xmlNode.children).forEach(function(key) {
-			xmlString += xmlNode.children[key].outerHTML
+
+			// omit old opening_hours (erroneous)
+			if (xmlNode.children[key].outerHTML.search(/opening_hours/i) === -1) {
+				xmlString += xmlNode.children[key].outerHTML
+			}
 		});
 
 		// add new <opening_hours> key
-		xmlString += '<tag k="opening_hours" v="' + $('#FastOpeningHoursHidden').val() + '"/>'
+		if ($('#openingHoursHiddenFast').val() !== '') {
+			xmlString += '<tag k="opening_hours" v="' + $('#openingHoursHiddenFast').val() + '"/>'
+		}
 
 		// closing node|way tag
 		xmlString += '</' + featureId.split('/')[0] + '>';
@@ -3269,6 +3460,104 @@ function uploadModification (changesetId, featureId) {
 	}
 }
 
+
+/**
+ *
+ * uploadMove:  modify node with ID <featureId>
+ *
+ * @param changesetId - Id of change set
+ * @param featureId - feature id to be modified (format: <node|way>/<number>)
+ *
+ */
+function uploadMove (changesetId, featureId) {
+
+	var xmlString = '';
+	// read from DOM XML node|way
+	var xmlNode = $('#featureXML').val().getElementsByTagName(featureId.split('/')[0])[0];
+
+	if (changesetId) {
+		// header
+		xmlString = '<osmChange><modify>';
+
+		// node|way
+		xmlString += '<' + featureId.split('/')[0];
+
+		// id number
+		xmlString += ' id="' + featureId.split('/')[1] + '"';
+
+		// new coordinates
+		xmlString += ' lon="' + $('#newLongitudeHidden').val() + '" lat="' + $('#newLatitudeHidden').val() + '"';
+
+		// version and change set id
+		xmlString += ' version="' + xmlNode.getAttribute('version') + '" changeset="' + changesetId + '">';
+
+		// add existing keys
+		Object.keys(xmlNode.children).forEach(function(key) {
+
+			// omit address fields
+			if (xmlNode.children[key].outerHTML.search(/addr\:/i) === -1) {
+				xmlString += xmlNode.children[key].outerHTML
+			}
+		});
+
+		// add new new address fields from DOM
+		$.each($('#moveFeatureForm').serializeArray(),
+			function (index, tag) {
+				srvLog(tag.name + ' : ' + tag.value);
+
+				// add addr: fields
+				if (tag.name.search(/addr\:/i) > -1) {
+					xmlString += "<tag k='" + tag.name + "' v='" + tag.value + "'/>";
+				}
+			}
+		);
+
+		// closing node|way tag
+		xmlString += '</' + featureId.split('/')[0] + '>';
+
+		// footer
+		xmlString += '</modify></osmChange>';
+
+		srvLog(xmlString);
+
+		cashMapAuth.xhr({
+			method: 'POST',
+			path: '/api/0.6/changeset/' + changesetId + '/upload',
+			options: {
+				header: {
+					'Content-Type': 'text/xml'
+				}
+			},
+			content: xmlString
+		}, function (err, result) {
+			if (err) {
+
+				srvLog('error on upload move: ' + err.responseText);
+				showError('Fehler beim Hochladen zum OSM-Server, bitte wiederholen.');
+
+			} else {
+
+				cashMapAuth.xhr({
+					method: "PUT",
+					path: "/api/0.6/changeset/" + changesetId + "/close"
+				}, function (err) {
+
+					if (err) {
+
+						srvLog('error on closing changeset: ' + err.responseText);
+						showError('Fehler beim Hochladen zum OSM-Server, bitte wiederholen.');
+
+					} else {
+						srvLog('new position saved.');
+						showInfo('Neue Position in OSM gespeichert.');
+					}
+				});
+			}
+		});
+
+	}
+}
+
 /**
  *
  * uploadDeletion:  delete node with ID
@@ -3291,7 +3580,6 @@ function uploadDeletion (changesetId, featureId) {
 		xmlString += ' version="' +
 			$('#featureXML').val().getElementsByTagName(featureId.split('/')[0])[0].getAttribute('version') + '"';
 		xmlString += ' changeset="' + changesetId + '">';
-	//	xmlString += '<tag k="amenity" v="atm"/>';
 		xmlString += '</' + featureId.split('/')[0] + '></delete>';
 		xmlString += '</osmChange>';
 
