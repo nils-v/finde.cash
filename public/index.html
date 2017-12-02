@@ -113,7 +113,7 @@
             <div class="sidebarWrapper" id="cardFeatureList">
                 <div class="card border-0">
                     <div class="card-header border-0">
-                        <div class="card-title text-primary mb-0">In der N&auml;he
+                        <div class="card-title text-primary mb-0">Auf der Karte
                             <button type="button" class="close" id="btnHideSidebar" aria-hidden="true">&times;</button>
                         </div>
                     </div>
@@ -178,7 +178,6 @@
                     <span id="featureId"></span>
                     <span id="featureObj"></span>
                     <span id="featureXML"></span>
-                    <span id="featureVersion"></span>
                     <span id="layerObj"></span>
 
                     <!-- Nav tabs responsive -->
@@ -209,7 +208,7 @@
                             <div id="infoText"></div>
                             <div class="featureLogo" id="logoSVG"></div>
                         </div>
-                        <div class="tab-pane flex-column flex-sm-row mt-3 m-md-3" role="tabpanel" id="openingTable"></div>
+                        <div class="tab-pane mt-3 m-md-3" role="tabpanel" id="openingTable"></div>
                         <div class="tab-pane mt-3 m-md-3" role="tabpanel" id="osmTags">
                             <div id="osmTagsTable"></div>
                             <div id="osmInfoMissing"></div>
@@ -248,14 +247,14 @@
 
                     <div class="modal-header">
                         <div class="modal-title text-primary">Geldautomaten erfassen</div>
-                        <button type="button" id="btnFormClose" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
 
                     <div class="modal-body">
 
                         <input type="hidden" name="osmId" id="osmIdHidden">
-                        <input type="hidden" name="xLatitude" id="latitudeHidden">
-                        <input type="hidden" name="xLongitude" id="longitudeHidden">
+                        <input type="hidden" id="latitudeHidden">
+                        <input type="hidden" id="longitudeHidden">
 
                         <div id="accordionNewFeature" role="tablist" aria-multiselectable="true">
                             <div class="card">
@@ -298,11 +297,11 @@
                                                     <option>Sparda-Bank</option>
                                                     <option>Sparkassen ...</option>
                                                     <option>Targo-Bank</option>
-                                                    <option>Volksbanken ...</option>
+                                                    <option>VR-Banken ...</option>
                                                     <option>Unbekannt</option>
                                                 </select>
-                                                 <input class="form-control col-6 disabled" id="operatorInput" type="text" name="specialOperator"
-                                                     placeholder="Name ...">
+                                                 <input class="form-control col-6 disabled" id="operatorInput" type="text"
+                                                        name="specialOperator" placeholder="Name ...">
                                             </div>
                                             <label class="sr-only" for="networkSelect">Verbund</label>
                                             <small id="networkHelp" class="form-text text-muted ml-2">
@@ -313,7 +312,7 @@
                                                 <option value="" disabled selected>Verbund ...</option>
                                                 <option>Sparkassen-Finanzverbund</option>
                                                 <option>BankCard-Netz (VR-Banken)</option>
-                                                <option>CashGroup</option>
+                                                <option>Cash Group</option>
                                                 <option>Cashpool</option>
                                                 <option>Keiner</option>
                                             </select>
@@ -336,8 +335,8 @@
                                     <div id="getOpeningHours" class="card-block">
 
                                         <div class="form-group mb-0">
-                                            <input type="hidden" id="OpeningHoursHidden" name="opening_hours">
-                                            <select class="form-control" id="typeOpeningSelect" name="xTypeOpening">
+                                            <input type="hidden" id="openingHoursHidden" name="opening_hours">
+                                            <select class="form-control" id="typeOpeningSelect" name="xtypeOpening">
                                                 <option value="" disabled selected>Ausw&auml;hlen ...</option>
                                                 <option value="1">24/7 (st&auml;ndig ge&ouml;ffnet/zug&auml;nglich)</option>
                                                 <option value="2">Mo-Fr, von-bis</option>
@@ -410,10 +409,22 @@
                                     <div class="card-block">
 
                                         <div class="form-group mb-0">
-                                            <small id="osmHelp" class="text-muted ml-2">
-                                                <strong>Zus&auml;tzliche </strong>
-                                                <a target="_blank" href="https://wiki.openstreetmap.org/wiki/DE:Attribut">OSM-Attribute</a>:
+                                            <small id="cashInHelp" class="text-muted ml-2">
+                                                <strong>Einzahlungen</strong>&nbsp;(OSM-Attribut: [
+                                                <a target="_blank" href="https://wiki.openstreetmap.org/wiki/Tag:amenity%3Datm">cash_in</a>]):
                                             </small>
+                                            <div class="form-check form-check-inline">
+                                                <label class="form-check-label">
+                                                    <input class="form-check-input" type="checkbox" id="cashIn" name="cash_in"
+                                                           value="yes">&nbsp;Einzahlungen m&ouml;glich
+                                                </label>
+                                            </div>
+                                            <div>
+                                                <small id="osmHelp" class="text-muted ml-2">
+                                                    <strong>Zus&auml;tzliche </strong>
+                                                    <a target="_blank" href="https://wiki.openstreetmap.org/wiki/DE:Attribut">OSM-Attribute</a>:
+                                                </small>
+                                            </div>
                                             <div class="form-inline">
                                                 <label class="sr-only" for="osmTag1">Attribut 1</label>
                                                 <input class="form-control col-5 mr-2" id="osmTag1" type="text" name="xTag1"
@@ -445,21 +456,21 @@
                         </div> <!-- accordionNewFeature -->
 
                         <div class="form-group">
-                            <small id="levelComment" class="form-text text-muted ml-2">
+                            <small class="form-text text-muted ml-2">
                                 <strong>Kommentar (erforderlich&nbsp;-&nbsp;</strong><a target="_blank"
                                      href="http://wiki.openstreetmap.org/wiki/DE:Good_changeset_comments">Warum?</a>):
                             </small>
                             <label class="sr-only" for="commentInput">Kommentar</label>
-                            <textarea class="form-control" id="commentInput" name="xComment" rows="3"
+                            <textarea class="form-control" id="commentInput" name="xcomment" rows="3"
                                       placeholder="&Auml;nderungskommentar f&uuml;r die OSM Community..."></textarea>
                         </div>
 
                     </div> <!-- modal-body -->
 
                     <div class="modal-footer flex-column flex-sm-row">
-                        <button type="button" id="btnFormCancel" class="btn btn-outline-secondary w-100 mr-0 mr-sm-1"
+                        <button type="button" class="btn btn-outline-secondary w-100 mr-0 mr-sm-1"
                                 data-dismiss="modal">Abbrechen</button>
-                        <button type="submit" id="btnFormSubmit" class="btn btn-primary w-100 ml-0 ml-sm-1 mt-2 mt-sm-0">
+                        <button type="submit" class="btn btn-primary w-100 ml-0 ml-sm-1 mt-2 mt-sm-0">
                             Speichern</button>
                     </div>
 
@@ -499,14 +510,13 @@
                 <form id="newFastOpeningForm">
                     <div class="modal-header">
                         <div class="modal-title text-primary">&Ouml;ffnungszeiten erfassen</div>
-                        <button type="button" id="btnFormClose" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
 
                     <div class="modal-body">
-
                         <div class="form-group mb-0">
-                            <input type="hidden" id="FastOpeningHoursHidden" name="opening_hours">
-                            <select class="form-control" id="typeFastOpeningSelect" name="xFastTypeOpening">
+                            <input type="hidden" id="openingHoursHiddenFast" name="opening_hours">
+                            <select class="form-control" id="typeOpeningSelectFast" name="xtypeOpeningFast">
                                 <option value="" disabled selected>Ausw&auml;hlen ...</option>
                                 <option value="1">24/7 (st&auml;ndig ge&ouml;ffnet/zug&auml;nglich)</option>
                                 <option value="2">Mo-Fr, von-bis</option>
@@ -516,21 +526,20 @@
                         </div>
 
                         <div class="form-group">
-                            <small id="levelComment" class="form-text text-muted ml-2">
-                                <strong>Kommentar (erforderlich&nbsp;-&nbsp;</strong><a target="_blank"
-                                                                                        href="http://wiki.openstreetmap.org/wiki/DE:Good_changeset_comments">Warum?</a>):
+                            <small class="form-text text-muted ml-2">
+                                <strong>Kommentar (erforderlich&nbsp;-&nbsp;</strong>
+                                <a target="_blank" href="http://wiki.openstreetmap.org/wiki/DE:Good_changeset_comments">Warum?</a>):
                             </small>
-                            <label class="sr-only" for="FastOHCommentInput">Kommentar</label>
-                            <textarea class="form-control" id="FastOHCommentInput" name="xFastComment" rows="3"
+                            <textarea class="form-control" id="OhCommentInputFast" name="xcomment" rows="3"
                                       placeholder="&Auml;nderungskommentar f&uuml;r die OSM Community..."></textarea>
                         </div>
 
                     </div> <!-- modal-body -->
 
                     <div class="modal-footer flex-column flex-sm-row">
-                        <button type="button" id="btnFormCancel" class="btn btn-outline-secondary w-100 mr-0 mr-sm-1"
+                        <button type="button" class="btn btn-outline-secondary w-100 mr-0 mr-sm-1"
                                 data-dismiss="modal">Abbrechen</button>
-                        <button type="submit" id="btnFormSubmit" class="btn btn-primary w-100 ml-0 ml-sm-1 mt-2 mt-sm-0">
+                        <button type="submit" class="btn btn-primary w-100 ml-0 ml-sm-1 mt-2 mt-sm-0">
                             Speichern</button>
                     </div>
                 </form>
@@ -538,33 +547,106 @@
         </div>
     </div>
 
+    <!-- Feature verschieben -->
+    <div class="modal fade" id="moveFeatureModal" tabindex="-1" role="dialog" style="overflow-y: auto">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="moveFeatureForm">
+
+                    <div class="modal-header">
+                        <div class="modal-title text-primary" id="moveFeatureTitle"></div>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <input type="hidden" id="oldLatitudeHidden">
+                        <input type="hidden" id="oldLongitudeHidden">
+                        <input type="hidden" id="newLatitudeHidden">
+                        <input type="hidden" id="newLongitudeHidden">
+
+                        <div class="text-primary ml-2"><strong>Willst Du den Standort wirklich korrigieren?</strong></div>
+
+                        <div class="card-block">
+
+                            <div class="form-group mb-0">
+                                <div class="">Neue Adresse:</div>
+                                <small id="newStreetHelp" class="text-muted ml-2">
+                                    <strong>Stra&szlig;e, Nr.</strong> (OSM-Attribut: [
+                                    <a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>]):
+                                </small>
+                                <div class="form-inline">
+                                    <label class="sr-only" for="newStreetInput">Strasse</label>
+                                    <input class="form-control col-9" id="newStreetInput" type="text" name="addr:street"
+                                           placeholder="Stra&szlig;e...">
+                                    <label class="sr-only" for="newNumberInput">Hausnummer</label>
+                                    <input class="form-control col-3" id="newNumberInput" type="text" name="addr:housenumber"
+                                           placeholder="Nr...">
+                                </div>
+
+                                <small id="cityHelp" class="text-muted ml-2">
+                                    <strong>Land, PLZ, Ort</strong> (OSM-Attribut: [
+                                    <a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>]):
+                                    <span id="newCountryLong"></span>
+                                </small>
+                                <div class="form-inline">
+                                    <label class="sr-only" for="newCountryInput">Land</label>
+                                    <input class="form-control col-2" id="newCountryInput" type="text" name="addr:country"
+                                           placeholder="Land...">
+                                    <label class="sr-only" for="newPostcodeInput">Postleitzahl</label>
+                                    <input class="form-control col-3" id="newPostcodeInput" type="number" name="addr:postcode"
+                                           placeholder="PLZ...">
+                                    <label class="sr-only" for="newCityInput">Stadt</label>
+                                    <input class="form-control col-7" id="newCityInput" type="text" name="addr:city"
+                                           placeholder="Ort...">
+                                </div>
+                            </div>
+
+                        </div> <!-- card-block -->
+
+                        <div class="form-group">
+                            <small  class="form-text text-muted ml-2">
+                                <strong>Kommentar (erforderlich&nbsp;-&nbsp;</strong><a target="_blank"
+                                      href="http://wiki.openstreetmap.org/wiki/DE:Good_changeset_comments">Warum?</a>):
+                            </small>
+                            <textarea class="form-control" id="commentMove" name="xcomment" rows="2"
+                                      placeholder="Kommentar zur neuen Position ..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer flex-column flex-sm-row">
+                        <button type="button" id="btnCancelMoveFeature" class="btn btn-outline-primary w-100 mr-0 mr-sm-1"
+                                data-dismiss="modal">Abbrechen</button>
+                        <button type="submit" class="btn btn-secondary w-100 ml-0 ml-sm-1 mt-2 mt-sm-0"
+                                id="btnDeleteFeature">Speichern</button>
+                    </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
     <!-- Feature löschen -->
     <div class="modal fade" id="deleteFeatureModal" tabindex="-1" role="dialog" style="overflow-y: auto">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <form id="deleteFeatureForm">
+
                     <div class="modal-header">
                         <div class="modal-title text-primary" id="deleteFeatureTitle"></div>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
 
                     <div class="modal-body">
-                        <span id="delFeatureVersion"></span>
-                        <span id="delLatitude"></span>
-                        <span id="delLongitude"></span>
-
                         <div class="text-danger ml-2"><strong>Willst Du dieses Objekt wirklich aus OSM l&ouml;schen?</strong></div>
                         <div class="table table-striped mt-4 w-90 mx-auto" id="delFeatureOsmTags"></div>
                         <div class="form-group">
-                            <small id="deleteComment" class="form-text text-muted ml-2">
+                            <small  class="form-text text-muted ml-2">
                                 <strong>Kommentar (erforderlich&nbsp;-&nbsp;</strong><a target="_blank"
                                     href="http://wiki.openstreetmap.org/wiki/DE:Good_changeset_comments">Warum?</a>):
                             </small>
-                            <label class="sr-only" for="commentDelete">Kommentar</label>
-                            <textarea class="form-control" id="commentDelete" name="comment" rows="2"
-                                      placeholder="L&ouml;schkommentar f&uuml;r die OSM Community..."></textarea>
+                            <textarea class="form-control" id="commentDelete" name="xcomment" rows="2"
+                                      placeholder="Kommentar zur L&ouml;schung ..."></textarea>
                         </div>
-
                     </div>
 
                     <div class="modal-footer flex-column flex-sm-row">
@@ -907,12 +989,9 @@
         </div>
     </div>
 
-    <!-- Info Alert - without button -->
+    <!-- Info Alert - without button hide on map move and click -->
     <div class="container col-12 col-md-8 col-lg-6 fixed-bottom mb-3 invisible" id="infoAlert">
-        <div class="alert alert-info alert-dismissible text-center" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+        <div class="alert alert-info text-center" role="alert">
             <div class="col-12" id="infoAlertText"></div>
         </div>
     </div>
@@ -920,8 +999,7 @@
     <!-- Warning Alert -->
     <div class="container col-12 col-md-8 col-lg-6 fixed-bottom mb-3 invisible" id="warningAlert">
         <div class="alert alert-warning text-center" role="alert">
-            <div class="col-12" id="warningAlertText">
-            </div>
+            <div class="col-12" id="warningAlertText"> </div>
             <button type="button" class="btn btn-primary mt-2" id="btnWarningClose">Schlie&szlig;en</button>
         </div>
     </div>
@@ -937,8 +1015,8 @@
 
     <!-- CDN -->
     <!-- jQuery first, then Tether, then Bootstrap  -->
-    <script src="https://code.jquery.com/jquery-3.2.0.min.js"
-            integrity="sha256-JAW99MJVpJBGcbzEuXk4Az05s/XyDdBomFqNlM3ic+I="
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
             crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
             integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
@@ -948,8 +1026,8 @@
     <script src="vendor/bootstrap-4/dist/js/bootstrap.min.js"></script>
 
     <!-- CDNs -->
-    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.js"></script>
-    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.17.0/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.17.0/dist/additional-methods.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js"></script>
     <script src="https://unpkg.com/@mapbox/leaflet-pip@latest/leaflet-pip.js"></script>
