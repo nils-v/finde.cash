@@ -360,7 +360,7 @@
                                 </div>
                                 <div id="collapseAddress" class="collapse" role="tabpanel" aria-labelledby="headerAddress">
                                     <div class="card-block">
-
+                                        <div class="">N&auml;chstgelegene Adresse:</div>
                                         <div class="form-group mb-0">
                                             <small id="streetHelp" class="text-muted ml-2">
                                                 <strong>Stra&szlig;e, Nr.</strong> (OSM-Attribut: [
@@ -390,6 +390,12 @@
                                                 <label class="sr-only" for="cityInput">Stadt</label>
                                                 <input class="form-control col-7" id="cityInput" type="text" name="addr:city"
                                                        placeholder="Ort...">
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <label class="form-check-label mt-md-2">
+                                                    <input class="form-check-input" type="checkbox" id="writeAddress" name="xWriteAddress"
+                                                           value="no">&nbsp;Adresse im OSM-Attribut: [<a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>] speichern
+                                                </label>
                                             </div>
                                         </div>
 
@@ -570,7 +576,7 @@
                         <div class="card-block">
 
                             <div class="form-group mb-0">
-                                <div class="">Neue Adresse:</div>
+                                <div class="" id="infoNewAddress"></div>
                                 <small id="newStreetHelp" class="text-muted ml-2">
                                     <strong>Stra&szlig;e, Nr.</strong> (OSM-Attribut: [
                                     <a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>]):
@@ -599,6 +605,12 @@
                                     <label class="sr-only" for="newCityInput">Stadt</label>
                                     <input class="form-control col-7" id="newCityInput" type="text" name="addr:city"
                                            placeholder="Ort...">
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <label class="form-check-label mt-md-2">
+                                        <input class="form-check-input" type="checkbox" id="writeNewAddress" name="xWriteNewAddress"
+                                               value="no">&nbsp;Adresse im OSM-Attribut: [<a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>] speichern
+                                    </label>
                                 </div>
                             </div>
 
