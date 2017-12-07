@@ -571,7 +571,7 @@
                         <input type="hidden" id="newLatitudeHidden">
                         <input type="hidden" id="newLongitudeHidden">
 
-                        <div class="text-primary ml-2"><strong>Willst Du den Standort wirklich korrigieren?</strong></div>
+                        <div class="text-primary ml-2"><strong>Willst Du die neue Position wirklich speichern?</strong></div>
 
                         <div class="card-block">
 
@@ -724,10 +724,10 @@
                                             &Ouml;ffnungszeiten erfasst wurden, ist das Logo schwarz.</p>
                                         <p>Der Bankenverbund des Automaten wird durch die Farbe des Markers gekennzeichnet. Die Anzeige l&auml;sst sich
                                             &uuml;ber den Auswahlbutton rechts oben auf einzelne Verb&uuml;nde filtern.</p>
-                                        <p>M&ouml;chtest Du einen Geldautomaten erfassen, der nicht in der Karte verzeichnet ist, tippe lang
+                                        <p>M&ouml;chtest Du einen Geldautomaten erfassen, der nicht in der Karte verzeichnet ist, tippe etwas l&auml;nger
                                             auf den Punkt auf der Karte (oder rechter Mausklick) und w&auml;hle "Erfassen". Du kannst die Nadel genau an
                                             die Stelle bewegen, an der der Automat steht. Du kannst auch &uuml;ber das Men&uuml; "Erfassen/Auf der Karte"
-                                            eine Nadel auf die Kartenmitte setzen, per Hand verschieben und dann die Daten eingeben.
+                                            eine Nadel auf die Kartenmitte setzen, per Maus/Hand verschieben und dann die Daten eingeben.
                                             (Du musst einen OpenStreetMap-Account haben und Dich &uuml;ber das Men&uuml; "OSM" anmelden.)</p>
                                     </div>
                                 </div>
@@ -750,18 +750,19 @@
                                             <span class="text-info">[amenity=bank]</span>&nbsp;+&nbsp;<span class="text-info">[atm=yes]</span>,
                                             Markersymbol: <i class="fa fa-institution"></i>) an. Die Erfassung erfolgt i.d.R. als Knoten
                                             (<a href="http://wiki.openstreetmap.org/wiki/DE:Node" target="_blank">node</a>), diese werden als farbige Marker angezeigt,
-                                            es werden aber auch Bankfilialen als Linie (<a href="http://wiki.openstreetmap.org/wiki/DE:Way" target="_blank">way</a>)
-                                            erfasst, diese werden in <span class="text-secondary">finde.cash&excl;</span> als farbige Polygone angezeigt.
+                                            es werden aber auch Polygone angezeigt, wenn eine Bankfiliale als Linienzug (<a href="http://wiki.openstreetmap.org/wiki/DE:Way" target="_blank">way</a>)
+                                            erfasst wurde..
                                         </p>
                                         <p>Derzeit lassen sich mit <span class="text-secondary">finde.cash&excl;</span> nur Geldautomaten in OpenStreetMap anlegen, keine Bankfilialen.
                                             Das Attribut <span class="text-info">[amenity=atm]</span> wird bei neu angelegten Objekten automatisch vergeben. Die Eingabe eines
                                             Institutsnamens bzw. eines Operators ist zwingend, dabei kann aus einer Liste der gebr&auml;uchlichsten Institute in Deutschland
                                             ausgew&auml;hlt oder ein abweichender Name erfasst werden.
-                                            Der dazugehörige Bankenverbund wird anhand des erfassten Instituts-Namens aus einer Liste vorausgew&auml;hlt, kann aber noch verändert werden.
-                                            Die vermutliche Adresse des neuen Objekts wird aus seiner geografischen Position auf der Karte ermittelt und zur Erfassung angeboten.
-                                            Vor der Speicherung sollte sie gepr&uuml;ft und ggf. korrigiert werden. Werden die Adressfelder geleert, wird in OSM keine Adresse erfasst.
+                                            Der dazugeh&ouml;rige Bankenverbund wird anhand des erfassten Instituts-Namens aus einer Liste vorausgew&auml;hlt, kann aber noch verändert werden.
+                                            Die n&auml;chstliegende Adresse des neuen Objekts wird aus seiner geografischen Position auf der Karte ermittelt und angezeigt.
+                                            Die Adressdaten k&ouml;nnen manuell &uuml;berschrieben und bei Bedarf mit dem Objekt im Attribut <a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>
+                                            gespeichert werden. Standardm&auml;ssig wird für Geldautomaten jedoch keine Adresse erfasst.
                                         </p>
-                                        <p>Du kannst max. 3 zusätzliche Attribute angeben, &uuml;blich sind <span class="text-info">[source=]</span> zur Beschreibung der Quelle
+                                        <p>Du kannst max. 3 zusätzliche Attribute angeben, &uuml;blich sind <span class="text-info">[source]</span> zur Beschreibung der Quelle
                                             der Eintragung (z.B. <span class="text-info">survey</span> - eigene Beobachtung). Für einen Geldautomaten in einem Fußg&auml;ngertunnel
                                             bzw. U-Bahnhof (1. Untergeschoss) kann das Attribut <span class="text-info">[level=-1]</span> erfasst werden.
                                         </p>
@@ -798,6 +799,7 @@
                                                     <a href="http://wiki.openstreetmap.org/wiki/DE:Key:opening_hours" target="_blank">OSM-Konvention</a> lassen sich
                                                     alle Varianten erfassen.</p>
                                             </ul>
+                                            F&uuml;r die Erfassung fehlender &Ouml;ffnungszeiten bei bestehenden Objekten ist keine Anmeldung in OSM notwendig.
                                         </p>
                                     </div>
                                 </div>
