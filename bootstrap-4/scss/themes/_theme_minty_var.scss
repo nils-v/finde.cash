@@ -1,9 +1,5 @@
 // Minty 4.0.0
 // Bootswatch
-
-
-
-
 // Table of Contents
 //
 // Colors
@@ -110,13 +106,13 @@ $gray-light:                #aaa;
 $gray-lighter:              #eceeef !default;
 $gray-lightest:             #f7f7f9 !default;
 
-// Reassign color vars to semantic color scheme
-$brand-primary:             #78C2AD;
-$brand-secondary:           #F3969A; // rgb(253,150,154)
-$brand-success:             #56CC9D;
-$brand-info:                #6CC3D5;
-$brand-warning:             #FFCE67;
-$brand-danger:              #FF7851;
+// Reassign color vars to semantic color scheme (#nv !default added for customization: define only if not yet defined)
+$brand-primary:             #78C2AD !default;
+$brand-secondary:           #F3969A !default; // rgb(253,150,154)
+$brand-success:             #56CC9D !default;
+$brand-info:                #6CC3D5 !default;
+$brand-warning:             #FFCE67 !default;
+$brand-danger:              #FF7851 !default;
 $brand-inverse:             $gray-dark !default;
 
 
@@ -572,7 +568,7 @@ $dropdown-box-shadow:            0 .5rem 1rem rgba($black,.175) !default;
 
 $dropdown-link-color:            $gray-dark !default;
 $dropdown-link-hover-color:      #fff;
-$dropdown-link-hover-bg:         #F3969A;
+$dropdown-link-hover-bg:         #F3969A !default;
 
 $dropdown-link-active-color:     $component-active-color !default;
 $dropdown-link-active-bg:        $component-active-bg !default;
