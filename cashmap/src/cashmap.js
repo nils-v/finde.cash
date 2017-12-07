@@ -5,7 +5,7 @@
 
 var VERSION = [
 	{
-		number: '0.9.6', date: 'xx.11.2017'	},
+		number: '0.9.6', date: '07.12.2017'	},
 	{
 		number: '0.9.5', date: '25.09.2017'	},
 	{
@@ -22,9 +22,10 @@ var RELEASE_NOTES = [];
 
 RELEASE_NOTES['0.9.6'] = '<p>Das Routing zum ausgew&auml;hlten Geldautomaten bzw. der Bankfiliale ist jetzt auch ' +
 	'per Fahrrad und per &Ouml;PNV m&ouml;glich. Dabei betr&auml;gt die maximale Routenl&auml;nge 30 min.</p>' +
-	'<p>F&uuml;r einen bestehenden Geldautomaten bzw. eine Bankfiliale können jetzt auch ohne OSM-Account fehlende' +
-	' &Ouml;ffnungszeiten eingetragen werden.</p> +' +
-	'<p>Die genaue Position eines Geldautomaten kann jetzt einfach durch Verschieben auf der Karte korrigiert werden.</p>';
+	'<p>F&uuml;r einen bestehenden Geldautomaten bzw. eine Bankfiliale können auch ohne OSM-Account fehlende' +
+	' &Ouml;ffnungszeiten eingetragen werden.</p>' +
+	'<p>Die genaue Position eines Geldautomaten kann durch Verschieben das Markers auf der Karte korrigiert werden.</p>' +
+	'<p>Bei Neuanlage eines Geldautomaten wird die n&auml;chstgelegene Adresse nicht mehr automatisch übernommen</p>';
 
 RELEASE_NOTES['0.9.5'] = '<p>Auf Tablets/Desktops gibt es jetzt links eine einklappbare Liste aller Geldautomaten bzw. ' +
 	'Bankfilialen im Kartenausschnitt. Wurde der Standort ermittelt, wird die Entfernung (Luftlinie) vom Standort zum ' +
@@ -186,8 +187,7 @@ var hybridLayer = L.tileLayer(
 			OSM_ATTR
 	});
 
-var basAuth = 'Basic ZmluZGUtY2FzaC10ZXN0OkF0bUZpbmRlbj8=';
-//var basAuth = 'Basic ZmluZGUtY2FzaC1lZGl0b3I6PjRVLm5temRrUURpN25LVDM5UkgqQHglTDlES2FU';
+var basAuth = 'Basic ZmluZGUtY2FzaC1lZGl0b3I6PjRVLm5temRrUURpN25LVDM5UkgqQHglTDlES2FU';
 
 // leaflet map layers =======================================================
 var baseLayers = {
@@ -330,23 +330,14 @@ Object.keys(RELEASE_NOTES).forEach(function (number) {
 $('#releaseNotes').html(releaseNotes);
 
 
-// OAuth object DEV server
-var cashMapAuth = osmAuth({
-	oauth_secret: "df73nlidufppGIW14ch3IrgVlMNHkfIvs6pqnpCh",
-	oauth_consumer_key: "38cPnvmmnxOF8CN8gVfsdENclYK1XIvBRaWxQR5u",
-	auto: true,
-	url: 'https://master.apis.dev.openstreetmap.org'
-});
-
 // OAuth object
-/*
 var cashMapAuth = osmAuth({
 	 oauth_secret: 'fAJv1DunRsvAjoyft03tksqitRcjEIFISqMwu9H9',
 	 oauth_consumer_key: 'lQKPCyfCvhQU3CxCHaESW4LN8Zq9Lmp2a8d49nAx',
 	 auto: true,
 	 url: 'https://www.openstreetmap.org'
 });
-*/
+
 
 // log4javascript
 var log = log4javascript.getLogger();
@@ -388,7 +379,7 @@ $(window).on('resize', function( event ) {
  * - Update sidebar
  */
 cashMap.on('overlayadd', function(e) {
-	console.log('*** cashMap.overlayadd');
+
 	syncSidebar();
 
 });
@@ -400,7 +391,7 @@ cashMap.on('overlayadd', function(e) {
  * - update sidebar
  */
 cashMap.on('overlayremove', function(e) {
-	console.log('*** cashMap.overlayremove');
+
 	syncSidebar();
 
 });
@@ -413,8 +404,6 @@ cashMap.on('overlayremove', function(e) {
  * - hide info alert
  */
 cashMap.on('movestart zoomstart', function(e) {
-
-	console.log('*** cashMap.movestart zoomstart');
 
 	window.clearTimeout(timerID);
 	cashMap.spin(false);
@@ -433,7 +422,6 @@ cashMap.on('movestart zoomstart', function(e) {
  *
  */
 cashMap.on('moveend', function(e) {
-	console.log('*** cashMap.moveend');
 
 	var currZoom = cashMap.getZoom();
 
@@ -464,7 +452,6 @@ cashMap.on('moveend', function(e) {
  * 	(data is loaded via moveend event handler)
  */
 cashMap.on('zoomend', function(e) {
-	console.log('*** cashMap.zoomend');
 
 	hideError();
 
@@ -492,7 +479,6 @@ cashMap.on('zoomend', function(e) {
  * - if accuracy < 1000 m: set location coords to myLocation
  */
 cashMap.on('locationfound', function(e) {
-	console.log('*** cashMap.locationfound');
 
 	hideInfo();
 	if (e.accuracy < 1000) {
@@ -524,7 +510,6 @@ cashMap.on('locationfound', function(e) {
  * 	- set myLocation to null
  */
 cashMap.on('locationerror', function(e) {
-	console.log('*** cashMap.locationerror');
 
 	var ErrText = 'Dein Standort konnte nicht ermittelt werden.';
 
@@ -553,7 +538,6 @@ cashMap.on('locationerror', function(e) {
  *
  */
 cashMapGeoCoder.on('markgeocode', function(e) {
-	console.log('*** cashMapGeoCoder.markgeocode');
 
 	// TODO remove marker on location found
 	clearAtmLayersAndRoutes();
@@ -593,13 +577,13 @@ $('#osmLoginToggle').click( function (e) {
 	if (!cashMapAuth.authenticated()) {
 
 		cashMapAuth.authenticate( function() {
-			getOsmUser();
+			showCurrentOsmUser();
 		});
 
 	} else {
 
 		cashMapAuth.logout();
-		getOsmUser();
+		showCurrentOsmUser();
 
 	}
 	return false;
@@ -759,7 +743,7 @@ function syncSidebar() {
 if ( !('ontouchstart' in window) ) {
 
 	$(document).on('mouseover', '.featureRow', function(e) {
-		console.log('*** document.mouseover .featureRow');
+
 		highlightLayer
 			.clearLayers()
 			.addLayer(L.circleMarker([$(this).attr('lat'), $(this).attr('lng')], highlightStyle));
@@ -786,7 +770,6 @@ $(document).on('mouseout', '.featureRow', clearHighlight);
  * - generate click event on marker to open feature form
  */
 $(document).on('click', '.featureRow', function(e) {
-	console.log('*** document.click .featureRow');
 
 	// preserve highlight on mouseout
 	$(document).off('mouseout', '.featureRow', clearHighlight);
@@ -827,7 +810,6 @@ $('#featureModal').on('hidden.bs.modal', function (e) {
  * - de-highlight marker
  */
 function clearHighlight() {
-	console.log('*** document.mouseout .featureRow');
 
 	highlightLayer.clearLayers();
 
@@ -850,8 +832,8 @@ $('#btnOsmLogin').click( function (e) {
 
 		cashMapAuth.authenticate( function() {
 
-			// getOsmUser sets #osmLoginToggle and #navbarDropdownOsm
-			getOsmUser();
+			// showCurrentOsmUser sets #osmLoginToggle and #navbarDropdownOsm
+			showCurrentOsmUser();
 
 		});
 	}
@@ -1073,8 +1055,7 @@ $('#btnCancelMoveFeature').click( function (e) {
 function readFeatureDetailsAsXML (featureId) {
 
 	$.get({
-		//url: "https://www.openstreetmap.org/api/0.6/" + featureId,
-		url: "https://master.apis.dev.openstreetmap.org/api/0.6/" + featureId,
+		url: "https://api.openstreetmap.org/api/0.6/" + featureId,
 		dataType: "xml",
 		success: function (data, textStatus, jqXHR) {
 			$('#featureXML').val(data);
@@ -1113,7 +1094,7 @@ function deleteFeature (featureId) {
 $(function () {
 
 	// check OSM authentication, if yes show authenticated user
-	getOsmUser();
+	showCurrentOsmUser();
 
 	// get polygon to check if atm is in Germany
 	readGermanyBorders();
@@ -1273,7 +1254,7 @@ $(function () {
 				}
 			}
 
-			// write data to osm database
+			// write data to osm database (featureId is null)
 			createChangeset( $("#commentInput").val(), null, uploadCreation, cashMapAuth );
 
 			$("#newFeatureModal").modal('hide');
@@ -1612,13 +1593,13 @@ function getOpeningHoursError (ohString) {
 
 // helper functions ---------------------------------------------------------------------------------------
 /**
- * getOsmUser - Calls the OSM API to get the logged in user details as xml
+ * showCurrentOsmUser - Calls the OSM API to get the logged in user details as xml and show name in menu
  *
  * 	- sets the user details in menu item "OSM"
  * 	- toggles the login/logout out menu item text
  *
  */
-function getOsmUser () {
+function showCurrentOsmUser () {
 
 	if (cashMapAuth.authenticated ()) {
 		cashMapAuth.xhr({
@@ -1882,58 +1863,44 @@ function loadOsmData (zoom) {
 		'node["amenity"="atm"]' + bboxString + ';' +
 		'way["amenity"="atm"]' + bboxString + ';);(._;>;);out body qt;';
 
-	//  ===
-	$.ajax({
-		url: "https://master.apis.dev.openstreetmap.org/api/0.6/map?bbox=" + currentDataBounds.toBBoxString(),
-		dataType: "xml",
-		success: function (data) {
-	//  ===
+	$.getJSON(osmOverpassCall)
+		.done( function (data) {
 
-//	$.getJSON(osmOverpassCall)
-//	.done( function (data) {
+			// convert overpass JSON to GeoJSON
+			var atmDataAsGeojson = osmtogeojson(data);
 
-		// convert overpass JSON to GeoJSON
-		var atmDataAsGeojson = osmtogeojson(data);
+			clearAtmLayersAndRoutes();
 
-		clearAtmLayersAndRoutes();
+			// create geoJson Layers (one per atm network) and put in overlayLayers Object
+			Object.keys(overlayLayers).forEach( function (verbund) {
 
-		// create geoJson Layers (one per atm network) and put in overlayLayers Object
-		Object.keys(overlayLayers).forEach( function (verbund) {
+				overlayLayers[verbund] = createAtmNetworkLayer(atmDataAsGeojson, verbund);
 
-			overlayLayers[verbund] = createAtmNetworkLayer(atmDataAsGeojson, verbund);
+				if (overlayLayers[verbund].getLayers().length > 0) {
 
-			if (overlayLayers[verbund].getLayers().length > 0) {
+					// add layer group to map
+					cashMap.addLayer(overlayLayers[verbund]);
 
-				// add layer group to map
-				cashMap.addLayer(overlayLayers[verbund]);
-
-				var myIcon = '<svg width="15px" height="20px" viewBox="0 0 32 52" version="1.1" ' +
-					'xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
-					'<defs><radialGradient id="verlauf_' + verbund + '" r="50%" fx="50%" fy="20%">' +
-					'<stop offset="0%" stop-color="white" />' +
-					'<stop offset="100%" stop-color="' + STANDARD_COLOR[verbund] + '" />' +
-					'</radialGradient></defs>' +
-					'<path fill="url(#verlauf_' +	[verbund] + ')" stroke="black" stroke-width="1" ' +
-					'd="M16,1 C7.7146,1 1,7.65636364 1,15.8648485 C1,24.0760606 16,51 16,51 C16,51 31,24.0760606 31,15.8648485 C31,7.65636364 24.2815,1 16,1 L16,1 Z"></path></svg>';
+					// create svg icon
+					var myIcon = '<svg width="15px" height="20px" viewBox="0 0 32 52" version="1.1" ' +
+						'xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
+						'<defs><radialGradient id="verlauf_' + verbund + '" r="50%" fx="50%" fy="20%">' +
+						'<stop offset="0%" stop-color="white" />' +
+						'<stop offset="100%" stop-color="' + STANDARD_COLOR[verbund] + '" />' +
+						'</radialGradient></defs>' +
+						'<path fill="url(#verlauf_' +	[verbund] + ')" stroke="black" stroke-width="1" ' +
+						'd="M16,1 C7.7146,1 1,7.65636364 1,15.8648485 C1,24.0760606 16,51 16,51 C16,51 31,24.0760606 31,15.8648485 C31,7.65636364 24.2815,1 16,1 L16,1 Z"></path></svg>';
 
 					// add layer group to layer control
-				cashMapLayerControl.addOverlay(overlayLayers[verbund], myIcon + '&nbsp;' + NETWORK_SHORTNAME[verbund]);
+					cashMapLayerControl.addOverlay(overlayLayers[verbund], myIcon + '&nbsp;' + NETWORK_SHORTNAME[verbund]);
+				}
+			});
 
-			}
+			cashMap.spin(false);
+			syncSidebar();
 
-		});
-
-		cashMap.spin(false);
-		syncSidebar();
-
-//	})
-//	.fail( function (jwxhr_Object) {
-
-
-// +++
-		},
-		error: function (jqxhr, options, error) {
-// +++
+		})
+		.fail( function (jwxhr_Object) {
 
 			cashMap.spin(false);
 			srvLog('error on overpass load: ' + jwxhr_Object.status + ' - ' + jwxhr_Object.statusText);
@@ -1944,11 +1911,8 @@ function loadOsmData (zoom) {
 				jwxhr_Object.statusText + ')</span>');
 
 			syncSidebar();
-// +++
-		}
-// +++
-	});
 
+		});
 }
 
 /**
@@ -2002,9 +1966,25 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 			*/
 
 			if (osmTags.amenity === 'bank') {
-				featureTitle = osmTags.hasOwnProperty('name') ? osmTags.name : 'Kein Name erfasst';
+				if (osmTags.hasOwnProperty('name')) {
+					featureTitle = osmTags.name;
+				} else if (osmTags.hasOwnProperty('operator')) {
+					featureTitle = osmTags.operator;
+				} else if (osmTags.hasOwnProperty('brand')) {
+					featureTitle = osmTags.brand;
+				} else {
+					featureTitle = 'Kein Name erfasst';
+				}
 			} else {
-				featureTitle = osmTags.hasOwnProperty('operator') ? osmTags.operator : 'Kein Operator erfasst';
+				if (osmTags.hasOwnProperty('operator')) {
+					featureTitle = osmTags.operator;
+				} else if (osmTags.hasOwnProperty('name')) {
+					featureTitle = osmTags.name;
+				} else if (osmTags.hasOwnProperty('brand')) {
+					featureTitle = osmTags.brand;
+				} else {
+					featureTitle = 'Kein Operator erfasst';
+				}
 			}
 
 			if (osmTags.opening_hours) {
@@ -2071,17 +2051,19 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 		 *
 		 * option: onEachFeature
 		 *
-		 * create text for info modal tabs and register event handler to show modal
+		 * create texts for info modal tabs and register event handler to show modal on click
 		 *
 		 * @param feature
 		 * @param layer
 		 */
 		onEachFeature: function (feature, layer) {
 
-			if (feature.properties.tags) {
+			var osmTags = feature.properties.tags;
+
+			if (osmTags) {
 
 				// Modal  / Tab Allgemein füllen
-				var featureTitle = (feature.properties.tags.amenity === "bank") ? "Bank" : "Geldautomat";
+				var featureTitle = (osmTags.amenity === "bank") ? "Bank" : "Geldautomat";
 				var featureInfo = '';
 				var openingTable = '';
 				var osmInfoMissing = '';
@@ -2090,17 +2072,17 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 				var ohValid = false;
 
 				// [operator]
-				if (feature.properties.tags.operator) {
+				if (osmTags.operator) {
 					featureInfo += ((featureTitle === 'Bank') ? '<p>Name: ' : '<p>Betrieben von: ') +
-						feature.properties.tags.operator + '</p>';
+						osmTags.operator + '</p>';
 				} else {
 					osmInfoMissing += (featureTitle === 'Geldautomat') ?
 						'<p><i>Betreiber (Attribut [' +
 						'<a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:operator">operator</a>' +
 						']) nicht erfasst.</i></p>' : '';
-					if (feature.properties.tags.name) {
+					if (osmTags.name) {
 						featureInfo += ((featureTitle === 'Bank') ? '<p>Name: ' : '<p>Betrieben von: ') +
-							feature.properties.tags.name + '</p>';
+							osmTags.name + '</p>';
 					} else {
 						osmInfoMissing += '<p><i>Bankname (Attribut [' +
 							'<a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:name">name</a>' +
@@ -2109,8 +2091,8 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 				}
 
 				// [network]
-				if (feature.properties.tags.network) {
-					featureInfo += '<p>Automatenverbund: ' + (feature.properties.tags.network) + '</p>';
+				if (osmTags.network) {
+					featureInfo += '<p>Automatenverbund: ' + (osmTags.network) + '</p>';
 				} else {
 					featureInfo += '<p>Automatenverbund: ' + NETWORK_NAME[getAtmNetwork(feature)];
 					osmInfoMissing +=	((featureTitle === 'Geldautomat') ?
@@ -2119,13 +2101,16 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 						']) nicht erfasst.</i></p>' : '');
 				}
 
+				if (osmTags.cash_in && osmTags.cash_in === 'yes') {
+					featureInfo += '<p>Einzahlung m&ouml;glich</p>';
+				}
+
 				// [opening_hours] is defined
-				if (feature.properties.tags.opening_hours) {
+				if (osmTags.opening_hours) {
 
 					// try to parse opening hours
 					try {
-						oh = new opening_hours(
-							feature.properties.tags.opening_hours,
+						oh = new opening_hours(	osmTags.opening_hours,
 							{
 								"address":{
 									"country":"Deutschland",
@@ -2140,7 +2125,7 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 					}
 
 					// fill table via SimpleOpeningHours
-					var ohSimple = new SimpleOpeningHours(feature.properties.tags.opening_hours);
+					var ohSimple = new SimpleOpeningHours(osmTags.opening_hours);
 					var ohSimpleTable = ohSimple.getTable();
 
 					// if opening hours could be parsed
@@ -2190,24 +2175,22 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 				var osmTagTable = buildOsmTagsTable(feature);
 
 				/**
-				 * event handler for end of marker drag
+				 * event handler for start of dragging
 				 *
 				 * - fill DOM elements
 				 * - read feature details as XML
 				 */
 				layer.on('dragstart', function (e) {
-					console.log('*** layer.dragstart');
 
 					clearHighlight();
-
 					// save old position
 					$('#oldLongitudeHidden').val(e.target.feature.geometry.coordinates[0]);
 					$('#oldLatitudeHidden').val(e.target.feature.geometry.coordinates[1]);
 
 					// marker opaque, show popup not closeable
 					layer.setOpacity(0.7)
-						.bindPopup('Objekt an neue Position verschieben', {closeButton: false})
-						.addTo(cashMap);
+					.bindPopup('Objekt an neue Position verschieben', {closeButton: false})
+					.addTo(cashMap);
 					layer.openPopup();
 
 				});
@@ -2222,68 +2205,83 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 				 *  - open dialog form
 				 */
 				layer.on('dragend', function (e) {
-					console.log('*** layer.dragend');
 
-					var feat = e.target.feature;
-					var coord = e.target._latlng;
-
+					// reset marker
 					layer.closePopup().unbindPopup().setOpacity(1);
 
-					// store feature object
-					$('#featureId').val(feat.id);
-					$('#featureObj').val(feat);
+					// check authorisation
+					if (!cashMapAuth.authenticated()) {
 
-					// store layer object (marker/polygon)
-					$('#layerObj').val($(this));
+						// restore old position
+						layer.setLatLng([
+							$('#oldLatitudeHidden').val(),
+							$('#oldLongitudeHidden').val()
+						]);
 
-					// read feature details with API 0.6 and store as XML in #featureXML
-					readFeatureDetailsAsXML(feat.id);
+						// show login box
+						$("#osmAuthInfoModal").modal('show');
 
-					$('#moveFeatureTitle').html('Standort korrigieren');
-					//$('#moveFeatureTitle').html((feat.properties.tags.amenity === "bank" ? "Bankfiliale" : "Geldautomat") +
-					//	' verschieben');
+					} else {
 
-					// save new position in DOM for changeset
+						var feat = e.target.feature;
+						var coord = e.target._latlng;
 
-					$('#newLongitudeHidden').val(coord.lng);
-					$('#newLatitudeHidden').val(coord.lat);
+						// store feature object
+						$('#featureId').val(feat.id);
+						$('#featureObj').val(feat);
 
-					initMoveFeatureForm();
+						// store layer object (marker/polygon) in DOM for later use
+						$('#layerObj').val($(this));
 
-					// reverse geocode address and fill new address fields
-					cashMapGeoCoderProvider.reverse(
-						coord,
-						cashMap.options.crs.scale(cashMap.getZoom()),
-						function(results) {
+						// read feature details with API 0.6 and store as XML in #featureXML
+						readFeatureDetailsAsXML(feat.id);
 
-							if (results.length > 0) {
+						$('#moveFeatureTitle').html('Standort korrigieren');
 
-								results[0].properties.forEach(function (value) {
-									if (value.types[0]) {
-										if (value.types[0] === 'route') {
-											$('#newStreetInput').val(value.long_name);
-										} else if (value.types[0] === 'street_number') {
-											$('#newNumberInput').val(value.long_name);
-										} else if (value.types[0] === 'postal_code') {
-											$('#newPostcodeInput').val(value.long_name);
-										} else if (value.types[0] === 'locality') {
-											$('#newCityInput').val(value.long_name);
-										} else if (value.types[0] === 'country') {
-											$('#newCountryInput').val(value.short_name);
-											$('#newCountryLong').val(value.long_name)
+						// save new position in DOM for changeset
+						$('#newLongitudeHidden').val(coord.lng);
+						$('#newLatitudeHidden').val(coord.lat);
+
+						initMoveFeatureForm();
+
+						// reverse geocode address and fill new address fields
+						cashMapGeoCoderProvider.reverse(
+							coord,
+							cashMap.options.crs.scale(cashMap.getZoom()),
+							function (results) {
+
+								if (results.length > 0) {
+
+									results[0].properties.forEach(function (value) {
+										if (value.types[0]) {
+											if (value.types[0] === 'route') {
+												$('#newStreetInput').val(value.long_name);
+											} else if (value.types[0] === 'street_number') {
+												$('#newNumberInput').val(value.long_name);
+											} else if (value.types[0] === 'postal_code') {
+												$('#newPostcodeInput').val(value.long_name);
+											} else if (value.types[0] === 'locality') {
+												$('#newCityInput').val(value.long_name);
+											} else if (value.types[0] === 'country') {
+												$('#newCountryInput').val(value.short_name);
+												$('#newCountryLong').val(value.long_name)
+											}
 										}
-									}
-								});
-							} else {
+									});
+									$('#infoNewAddress').html('Neue Adresse:').removeClass('text-info');
+								} else {
 
-								// TODO Hinweis, das Adresse nicht ermittelt wurde
-								srvLog('reverse geocoding error: ' + feat.id + ' - ' +
-									coord.lat + '/' + coord.lng);
+									$('#infoNewAddress').html('Adresse konnte nicht ermittelt werden.')
+										.addClass('text-info');;
+									// TODO Hinweis, das Adresse nicht ermittelt wurde
+									srvLog('reverse geocoding error: ' + feat.id + ' - ' +
+										coord.lat + '/' + coord.lng);
+								}
 							}
-						}
-					);
+						);
 
-					$('#moveFeatureModal').modal('show');
+						$('#moveFeatureModal').modal('show');
+					}
 				});
 
 				/**
@@ -2293,7 +2291,6 @@ function createAtmNetworkLayer (geoJsonData, networkName) {
 				 * - read feature details as XML and store in DOM
 				 */
 				layer.on('click', function (e) {
-					console.log('*** layer. click');
 
 					// hidden fields
 					// store feature object
@@ -2600,8 +2597,7 @@ function showRoute (src, tgt, travelType) {
 		routeOptions.setRecommendations(-1); 	// no alternative route recommendations
 
 		// delete existing route(s)
-		routeLayer.clearLayers();
-		routeLayer.bindPopup('');
+		routeLayer.clearLayers().bindPopup('');
 
 		// set src and target
 		routeOptions.addSource(src);
@@ -3053,10 +3049,8 @@ function createNewMarker (markerLatLon) {
 	 * - remove marker on popup close
 	 */
 	newMarkerLayer.on('dragend', function (e) {
-		console.log('*** newMarkerLayer.dragend');
 
 		newMarkerLayer.openPopup().on('popupclose', function (e) {
-			console.log('*** newMarkerLayer.popup.dragend');
 
 			if (cashMap.hasLayer(newMarkerLayer)) {
 				cashMap.removeLayer(newMarkerLayer);
@@ -3070,7 +3064,6 @@ function createNewMarker (markerLatLon) {
 	 * - show edit form
  	 */
 	newMarkerLayer.on('click', function (e) {
-		console.log('*** newMarkerLayer.click');
 
 		newMarkerLayer.closePopup();
 		editNewMarker(newMarkerLayer.getLatLng());
@@ -3082,7 +3075,6 @@ function createNewMarker (markerLatLon) {
  	 */
 	newMarkerLayer.on('contextmenu', function (e) {
 
-		console.log('*** newMarkerLayer.contextmenu');
 
 		return false;
 	});
@@ -3113,7 +3105,7 @@ function editNewMarker (markerLatLon) {
 	} else {
 
 		// show user name on menu
-		getOsmUser();
+		showCurrentOsmUser();
 
 		// set coords in hidden form fields
 		$('#latitudeHidden').val(markerLatLon.lat.toFixed(6));
@@ -3212,7 +3204,6 @@ function createChangeset (comment, featureId, callback, authObj) {
 		"<tag k='created_by' v='finde.cash " + VERSION[0].number + "'/>" +
 		"<tag k='comment' v='" + comment + "'/>" +
 		"</changeset></osm>";
-
 	srvLog (xmlString);
 
 	if (authObj) {
@@ -3238,8 +3229,9 @@ function createChangeset (comment, featureId, callback, authObj) {
 
 	} else {
 
+		// basic authentication
 		$.ajax ({
-			url: 'https://master.apis.dev.openstreetmap.org/api/0.6/changeset/create',
+			url: 'https://api.openstreetmap.org/api/0.6/changeset/create',
 			type: 'PUT',
 			beforeSend: function (xhr) {
 				xhr.setRequestHeader("Authorization", basAuth);
@@ -3257,10 +3249,11 @@ function createChangeset (comment, featureId, callback, authObj) {
 			error: function (jqXHR, exception) {
 				srvLog('error creating changeset: ' + jqXHR.status + '/' + exception);
 				showError('Fehler beim Hochladen zum OSM-Server, bitte wiederholen.');
+
 			}
 		});
-
 	}
+
 }
 
 /**
@@ -3280,7 +3273,6 @@ function uploadCreation (changesetId) {
 
 		// create array of key/value pairs from all form input fields and iterate
 		$.each($("#newFeatureForm").serializeArray(), function (index, tag) {
-			srvLog (tag.name + ' : ' + tag.value);
 
 			if (tag.name === 'osmId') {
 
@@ -3317,6 +3309,12 @@ function uploadCreation (changesetId) {
 							xmlString += "<tag k='network' v='" + tag.value + "'/>";
 						}
 
+					// store address only if checked
+					} else if (tag.name.search(/addr\:/i) > -1) {
+						if ($('#writeAddress').prop('checked')) {
+							xmlString += "<tag k='" + tag.name + "' v='" + tag.value + "'/>";
+						}
+
 					// default: put field into changeset
 					} else {
 						xmlString += "<tag k='" + tag.name + "' v='" + tag.value + "'/>";
@@ -3327,7 +3325,6 @@ function uploadCreation (changesetId) {
 
 		// footer
 		xmlString += "</node></create><delete if-unused='true'/></osmChange>";
-
 		srvLog(xmlString);
 
 		cashMapAuth.xhr({
@@ -3417,7 +3414,6 @@ function uploadModification (changesetId, featureId) {
 
 		// footer
 		xmlString += '</modify></osmChange>';
-
 		srvLog(xmlString);
 
 		$.ajax ({
@@ -3425,7 +3421,7 @@ function uploadModification (changesetId, featureId) {
 				xhr.setRequestHeader("Authorization", basAuth) ;
 			},
 			method: 'POST',
-			url: 'https://master.apis.dev.openstreetmap.org/api/0.6/changeset/' + changesetId + '/upload',
+			url: 'https://api.openstreetmap.org/api/0.6/changeset/' + changesetId + '/upload',
 			options: {
 				header: {
 					'Content-Type': 'text/xml'
@@ -3435,6 +3431,7 @@ function uploadModification (changesetId, featureId) {
 			error: function (jqXHR, exception) {
 				srvLog('error on modification upload: ' + jqXHR.status + '/' +  exception);
 				showError('Fehler beim Speichern der &Auml;nderungen, bitte wiederholen.');
+
 			},
 			success: function (response) {
 
@@ -3442,17 +3439,19 @@ function uploadModification (changesetId, featureId) {
 				// close changeset
 				$.ajax ({
 
-					url: "https://master.apis.dev.openstreetmap.org/api/0.6/changeset/" + changesetId + "/close",
+					url: "https://api.openstreetmap.org/api/0.6/changeset/" + changesetId + "/close",
 					method: "PUT",
 					beforeSend: function (xhr) {
 						xhr.setRequestHeader("Authorization", basAuth) ;
 					},
 					error: function (jqXHR, exception) {
 						rvLog('error on closing changeset: ' + jqXHR.status + '/' +  exception);
+
 					},
 					success: function (response) {
 						srvLog('changeset closed.');
-						showInfo('Die &Auml;nderungen wurden gespeichert. Bitte Daten neu laden für Anzeige.');
+						showInfo('Die &Auml;nderungen wurden gespeichert und werden in wenigen Minuten angezeigt.');
+
 					}
 				});
 			}
@@ -3500,14 +3499,13 @@ function uploadMove (changesetId, featureId) {
 			}
 		});
 
-		// add new new address fields from DOM
+		// add new new address fields from DOM if write address is checked
 		$.each($('#moveFeatureForm').serializeArray(),
 			function (index, tag) {
-				srvLog(tag.name + ' : ' + tag.value);
-
-				// add addr: fields
 				if (tag.name.search(/addr\:/i) > -1) {
-					xmlString += "<tag k='" + tag.name + "' v='" + tag.value + "'/>";
+					if ($('#writeNewAddress').prop('checked')) {
+						xmlString += "<tag k='" + tag.name + "' v='" + tag.value + "'/>";
+					}
 				}
 			}
 		);
