@@ -47,7 +47,6 @@
 
     <link rel="icon" type="image/x-icon" href="./img/favicon.ico">
 </head>
-
 <body>
 
     <!-- Navigation Bar -->
@@ -79,7 +78,7 @@
                        aria-haspopup="true" aria-expanded="false">
                         <i class="fa fa-user-circle fa-lg" aria-hidden="true"></i>&nbsp;OSM [&nbsp;<span id="osmUser">nicht&nbsp;angemeldet</span>&nbsp;]</a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownOsm">
-                        <a class="dropdown-item" href="#" id="osmLoginToggle"><i class="fa fa-sign-in" aria-hidden="true"></i>">&nbsp;&nbsp;Anmelden</a>
+                        <a class="dropdown-item" href="#" id="osmLoginToggle"><i class="fa fa-sign-in" aria-hidden="true"></i>&nbsp;&nbsp;Anmelden</a>
                     </div>
                 </li>
 
@@ -590,7 +589,7 @@
                                            placeholder="Nr...">
                                 </div>
 
-                                <small id="cityHelp" class="text-muted ml-2">
+                                <small id="newCityHelp" class="text-muted ml-2">
                                     <strong>Land, PLZ, Ort</strong> (OSM-Attribut: [
                                     <a target="_blank" href="http://wiki.openstreetmap.org/wiki/Key:addr">addr</a>]):
                                     <span id="newCountryLong"></span>
@@ -630,7 +629,7 @@
                         <button type="button" id="btnCancelMoveFeature" class="btn btn-outline-primary w-100 mr-0 mr-sm-1"
                                 data-dismiss="modal">Abbrechen</button>
                         <button type="submit" class="btn btn-secondary w-100 ml-0 ml-sm-1 mt-2 mt-sm-0"
-                                id="btnDeleteFeature">Speichern</button>
+                                id="btnMoveFeature">Speichern</button>
                     </div>
                 </form>
             </div><!-- /.modal-content -->
@@ -738,12 +737,13 @@
                                 <div class="row mt-2">
                                     <div class="col-12">
                                         <p>In OpenStreetMap werden gew&ouml;hnlich folgende Attribute für die Kennzeichnung von Geldautomaten bzw. Bankfilialen
-                                            mit Geldautomaten verwendet (<a href="http://wiki.openstreetmap.org/wiki/DE:Tag:amenity%3Datm" target="_blank">OSM-Wiki</a>): <br />
-                                            <ul class="pl-4 pl-lg-8">
+                                            mit Geldautomaten verwendet (<a href="http://wiki.openstreetmap.org/wiki/DE:Tag:amenity%3Datm" target="_blank">OSM-Wiki</a>):
+                                        </p>
+                                        <ul class="pl-4 pl-lg-8">
                                             <li><span class="text-info">[amenity=bank]</span>: Bankfiliale</li>
                                             <li><span class="text-info">[amenity=bank]</span>&nbsp;+&nbsp;<span class="text-info">[atm=yes]</span>: Bankfiliale und Geldautomat(en)</li>
                                             <li><span class="text-info">[amenity=atm]</span>: Einzelner Geldautomat</li>
-                                            </ul>
+                                        </ul>
                                         <p>
                                             <span class="text-secondary">finde.cash&excl;</span> zeigt nur Geldautomaten (
                                             <span class="text-info">[amenity=atm]</span>, Markersymbol <i class="fa fa-euro"></i>) und Bankfilialen mit Geldautomaten (
@@ -775,32 +775,32 @@
                                 <div class="row mt-2">
                                     <div class="col-12">
                                         <p>Die Erfassung von &Ouml;ffnungszeiten erfolgt in OSM nach einem komplexen Schema, welches
-                                            alle Anwendungsf&auml;lle abdecken soll. Prinzipiell wird daf&uuml;r das Attribut
-                                            <span class="text-info">[opening_hours]</span> verwendet.
+                                            alle Anwendungsf&auml;lle abdecken soll. Prinzipiell wird daf&uuml;r das Attribut  <span class="text-info">[opening_hours]</span> verwendet.
                                             In <a href="http://blog.openstreetmap.de/blog/2015/04/wochenaufgabe-oeffnungszeiten/" target="_blank">dieser OSM-Wochennotiz</a>
                                             aus dem Jahr 2015 ist die Verfahrensweise zur Eintragung von &Ouml;ffnungszeiten beschrieben. Ein kurzes englisches Tutorial
-                                            gibt es <a href="http://wiki.openstreetmap.org/wiki/Key:opening_hours/Tutorial" target="_blank">hier</a>.</p>
+                                            gibt es <a href="http://wiki.openstreetmap.org/wiki/Key:opening_hours/Tutorial" target="_blank">hier</a>.
+                                        </p>
                                         <p>
                                             <span class="text-secondary">finde.cash&excl;</span> erleichtert Dir die Eingabe von &Ouml;ffnungszeiten durch eine Vorauswahl:
-                                            <ul class="pl-4 pl-lg-8">
-                                                <li class="text-info">24/7 - st&auml;ndig ge&ouml;ffnet/zug&auml;nglich</li>
-                                                <p>Die Kurzform <strong>"24/7"</strong> ist Teil der OSM Konvention und steht f&uuml;r eine &Ouml;ffnungszeit von 0:00-24:00 Uhr
-                                                    an sieben Tagen in der Woche. Bei der Erfassung von Geldautomaten ist im Regelfall diese Auswahl zu treffen,
-                                                    es sei denn, der Automat befindet sich in einem Geb&auml;ude mit eigener &Ouml;ffnungszeit. In diesem Fall sollte die
-                                                    &Ouml;ffnungszeit des Geb&auml;udes f&uuml;r den Geldautomaten &uuml;bernommen werden.</p>
-                                                <li class="text-info">Mo-Fr, von-bis</li>
-                                                <p>Mit dieser Auswahl ist es m&ouml;glich, zwei &Ouml;ffnungsintervalle anzugeben, die sich von Mo-Fr t&auml;glich wiederholen.
-                                                    (Bsp: "Mo-Fr: 08:00-12:00 und 14:00-16:00"). F&uuml;lle einfach eines oder beide Intervalle aus,
-                                                    <span class="text-secondary">finde.cash&excl;</span> tr&auml;gt das Attribut <span class="text-info">[opening_hours]</span>
-                                                    korrekt für Dich in die OSM-Datenbank ein.
-                                                </p>
-                                                <li class="text-info">Eingabe nach OSM-Konvention</li>
-                                                <p>Durch die freie Eingabe einer &Ouml;ffnungszeit gem&auml;ss
-                                                    <a href="http://wiki.openstreetmap.org/wiki/DE:Key:opening_hours" target="_blank">OSM-Konvention</a> lassen sich
-                                                    alle Varianten erfassen.</p>
-                                            </ul>
-                                            F&uuml;r die Erfassung fehlender &Ouml;ffnungszeiten bei bestehenden Objekten ist keine Anmeldung in OSM notwendig.
                                         </p>
+                                        <strong class="text-info">24/7 - st&auml;ndig ge&ouml;ffnet/zug&auml;nglich</strong><br />
+                                        <p>Die Kurzform <strong>"24/7"</strong> ist Teil der OSM Konvention und steht f&uuml;r eine &Ouml;ffnungszeit von 0:00-24:00 Uhr
+                                            an sieben Tagen in der Woche. Bei der Erfassung von Geldautomaten ist im Regelfall diese Auswahl zu treffen,
+                                            es sei denn, der Automat befindet sich in einem Geb&auml;ude mit eigener &Ouml;ffnungszeit. In diesem Fall sollte die
+                                            &Ouml;ffnungszeit des Geb&auml;udes f&uuml;r den Geldautomaten &uuml;bernommen werden.
+                                        </p>
+                                        <strong class="text-info">Mo-Fr, von-bis</strong><br />
+                                        <p>Mit dieser Auswahl ist es m&ouml;glich, zwei &Ouml;ffnungsintervalle anzugeben, die sich von Mo-Fr t&auml;glich wiederholen.
+                                            (Bsp: "Mo-Fr: 08:00-12:00 und 14:00-16:00"). F&uuml;lle einfach eines oder beide Intervalle aus,
+                                            <span class="text-secondary">finde.cash&excl;</span> tr&auml;gt das Attribut <span class="text-info">[opening_hours]</span>
+                                            korrekt für Dich in die OSM-Datenbank ein.
+                                        </p>
+                                        <strong class="text-info">Eingabe nach OSM-Konvention</strong><br />
+                                        <p>Durch die freie Eingabe einer &Ouml;ffnungszeit gem&auml;ss
+                                            <a href="http://wiki.openstreetmap.org/wiki/DE:Key:opening_hours" target="_blank">OSM-Konvention</a> lassen sich
+                                            alle Varianten erfassen.
+                                        </p>
+                                        <p>F&uuml;r die Erfassung fehlender &Ouml;ffnungszeiten bei bestehenden Objekten ist keine Anmeldung in OSM notwendig.</p>
                                     </div>
                                 </div>
                             </div>
@@ -811,29 +811,29 @@
                                     <div class="col-12">
                                         <p>Um ihren Kunden eine kostenlose Bargeldversorgung nicht nur an den eigenen Geldautomaten zu erm&ouml;glichen, haben sich
                                             in Deutschland  viele Banken zu bundesweiten Bankenverb&uuml;nden zusammengeschlossen:
-                                            <ul>
-                                                <li class="text-info">Sparkassenverbund</li>
-                                                    <p>Ca. 25.000 Geldutomaten der Sparkassen</p>
-                                                <li class="text-info">BankCard Servicenetz</li>
-                                                    <p>Ca. 18.000 Geldautomaten der Volks- und Raiffeisenbanken, PSD Banken; au&szlig;erdem: BBBank,
-                                                        Bank für Sozialwirtschaft, Sparda-Banken (Doppelmitgliedschaft mit Cashpool)
-                                                        [<a href="https://de.wikipedia.org/wiki/Bankcard-Servicenetz" target="_blank">Details</a>]
-                                                    </p>
-                                                <li class="text-info">Cash Group</li>
-                                                    <p>Ca. 9000 Geldautomaten von Deutsche Bank, Commerzbank, HypoVereinsbank, Postbank und deren Tochterbanken
-                                                        [<a href="https://de.wikipedia.org/wiki/Cash_Group" target="_blank">Details</a>]
-                                                    </p>
-                                                <li class="text-info">Cashpool</li>
-                                                    <p>Ca. 2.900 Geldautomaten von Sparda-Banken, Targobank (ehemals: Citibank), Santander Consumer Bank, Pax-Bank,
-                                                        Bank für Sozialwirtschaft und verschiedenen kleineren Banken
-                                                        [<a href="https://de.wikipedia.org/wiki/Cashpool" target="_blank">Details</a>]
-                                                    </p>
-                                                <li class="text-info">&Uuml;brige</li>
-                                                    <p>Hier finden sich haupts&auml;chlich die auf Geldautomaten spezialisierten Anbieter wie Euronet, Cardpoint und IC-Cash,
-                                                        au&szlig;erdem Bankhaus Lenz, ReiseBank und einige Direktbanken, wie die ING-DiBa, Consorsbank, Volkswagen Bank oder die DKB-Bank
-                                                    </p>
-                                            </ul>
                                         </p>
+
+                                        <strong class="text-info">Sparkassenverbund</strong><br />
+                                        <p>Ca. 25.000 Geldutomaten der Sparkassen</p>
+                                        <strong class="text-info">BankCard Servicenetz</strong><br />
+                                        <p>Ca. 18.000 Geldautomaten der Volks- und Raiffeisenbanken, PSD Banken; au&szlig;erdem: BBBank,
+                                            Bank für Sozialwirtschaft, Sparda-Banken (Doppelmitgliedschaft mit Cashpool)
+                                            [<a href="https://de.wikipedia.org/wiki/Bankcard-Servicenetz" target="_blank">Details</a>]
+                                        </p>
+                                        <strong class="text-info">Cash Group</strong><br />
+                                        <p>Ca. 9000 Geldautomaten von Deutsche Bank, Commerzbank, HypoVereinsbank, Postbank und deren Tochterbanken
+                                            [<a href="https://de.wikipedia.org/wiki/Cash_Group" target="_blank">Details</a>]
+                                        </p>
+                                        <strong class="text-info">Cashpool</strong><br />
+                                        <p>Ca. 2.900 Geldautomaten von Sparda-Banken, Targobank (ehemals: Citibank), Santander Consumer Bank, Pax-Bank,
+                                            Bank für Sozialwirtschaft und verschiedenen kleineren Banken
+                                            [<a href="https://de.wikipedia.org/wiki/Cashpool" target="_blank">Details</a>]
+                                        </p>
+                                        <strong class="text-info">&Uuml;brige</strong><br />
+                                        <p>Hier finden sich haupts&auml;chlich die auf Geldautomaten spezialisierten Anbieter wie Euronet, Cardpoint und IC-Cash,
+                                            au&szlig;erdem Bankhaus Lenz, ReiseBank und einige Direktbanken, wie die ING-DiBa, Consorsbank, Volkswagen Bank oder die DKB-Bank
+                                        </p>
+
                                         <p>Weitere Details auch beim <a href="https://www.kontofinder.de/ratgeber/deutsche-bankenverbuende"
                                                        target="_blank">Kontofinder</a>.
                                         </p>
