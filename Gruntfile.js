@@ -13,6 +13,7 @@ module.exports = function (grunt) {
 		// read meta data from package.json
 		pkg: grunt.file.readJSON('package.json'),
 
+		// babel used
 		babel: {
 			dist: {
 				options: {
@@ -30,7 +31,7 @@ module.exports = function (grunt) {
 		clean: ['cashmap/dist/*','public/js/*'],
 
 		// CSS build configuration
-		// copy to cashmap folder vendor/bootstrap-4
+		// copy to cashmap folder
 		copy: {
 			dev: {
 				files: [
@@ -52,7 +53,15 @@ module.exports = function (grunt) {
 			}
 		},
 
-		//
+		// spawn bootstrap 4 gruntfile
+		grunt: {
+			bootstrap: {
+				gruntfile: 'bootstrap-4/Gruntfile.js',
+				task: 'dist'
+			}
+		},
+
+		// check HTML quality
 		htmllint: {
 			options: {
 				ignore: [
@@ -74,6 +83,7 @@ module.exports = function (grunt) {
 			src: ['public/*.html']
 		},
 
+		// call external modules
 		exec: {
 			'htmlhint': {
 				command: 'npm run htmlhint'
@@ -81,9 +91,9 @@ module.exports = function (grunt) {
 			'uglify': {
 				command: 'npm run uglify'
 			}
-		},
+		}
 
-	})
+	});
 
 
 	// These plugins provide necessary tasks.
@@ -96,14 +106,14 @@ module.exports = function (grunt) {
 	// HTML validation tasks
 	grunt.registerTask('validate-html', ['htmllint', 'exec:htmlhint']);
 
-	// Javascript distribution task.
+	// Cashmap Javascript distribution task.
 	grunt.registerTask('dist-js', ['babel:dist', 'exec:uglify']);
 
 	// Full distribution task
 	// clean destination dir, prepare css, prepare js, copy bootstrap files to public folder
-	grunt.registerTask('dist', ['clean', 'dist-js', 'copy:dev'])
+	grunt.registerTask('dist', ['clean', 'validate-html', 'dist-js', 'grunt:bootstrap', 'copy:dev']);
 
 	// Default task: full distribution
-	grunt.registerTask('default', ['dist'])
+	grunt.registerTask('default', ['dist']);
 
-}
+};
